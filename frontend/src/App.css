@@ -17,7 +17,7 @@ html,
 body,
 #root {
   width: 100%;
-  min-height: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -26,11 +26,12 @@ body {
   background: var(--base);
   color: var(--text);
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
 }
 
 .app {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   overflow: hidden;
   background-color: #112233;
   background-repeat: no-repeat;
@@ -164,10 +165,13 @@ body {
 }
 
 .arenaScene {
-  min-height: 94vh;
+  height: 100%;
   position: relative;
   padding-top: 56px;
   padding-bottom: 94px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .momentumBar {
@@ -254,12 +258,14 @@ body {
 
 .projectionLane {
   margin-top: 18px;
-  max-height: calc(100vh - 300px);
-  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 0 10px 12px;
+  padding: 0 10px 140px;
 }
 
 .projectionCard {
@@ -277,14 +283,14 @@ body {
   align-self: flex-start;
   border-left: 2px solid rgba(59, 185, 255, 0.95);
   box-shadow: 0 0 14px rgba(59, 185, 255, 0.2);
-  transform: perspective(800px) rotateY(-6deg);
+  transform: none;
 }
 
 .projectionCard.student {
   align-self: flex-end;
   border-left: 2px solid rgba(255, 157, 59, 0.95);
   box-shadow: 0 0 14px rgba(255, 157, 59, 0.2);
-  transform: perspective(800px) rotateY(6deg);
+  transform: none;
 }
 
 .projectionCard header {
@@ -346,7 +352,7 @@ body {
   font-size: 0.96rem;
   font-weight: 700;
   text-align: center;
-  animation: toastUp 1.5s ease forwards;
+  animation: toastUp 3.2s ease forwards;
   box-shadow: 0 0 18px rgba(0, 0, 0, 0.28);
 }
 
@@ -369,21 +375,32 @@ body {
 }
 
 .metricsRibbon {
-  position: fixed;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  width: min(96vw, 1300px);
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  margin: 0 auto 10px;
+  width: fit-content;
+  max-width: calc(100vw - 24px);
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  white-space: normal;
-  flex-wrap: wrap;
-  padding: 12px 14px;
-  border-radius: 16px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  padding: 10px 14px;
+  border-radius: 12px;
   border: 1px solid rgba(152, 177, 230, 0.28);
-  background: rgba(15, 26, 46, 0.87);
+  background: rgba(9, 18, 34, 0.94);
   color: #dce8ff;
+}
+
+.bottomRibbon {
+  position: fixed;
+  top: auto;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  margin: 0;
 }
 
 .metricsRibbon.glow {
@@ -397,10 +414,20 @@ body {
 .metricChip {
   display: inline-flex;
   align-items: center;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid rgba(169, 192, 240, 0.36);
   background: rgba(22, 38, 66, 0.92);
+  font-weight: 600;
+}
+
+.enrollmentChip {
+  border-color: rgba(73, 230, 140, 0.55);
+  box-shadow: 0 0 14px rgba(73, 230, 140, 0.24);
+}
+
+.trustChip {
+  border-color: rgba(110, 214, 255, 0.55);
 }
 
 .freeze {
@@ -418,7 +445,8 @@ body {
 }
 
 .resultCard {
-  width: min(1400px, 97vw);
+  width: calc(100vw - 28px);
+  max-width: none;
   max-height: 90vh;
   overflow: auto;
   border-radius: 16px;
@@ -444,7 +472,7 @@ body {
 .resultGrid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
 
 .resultGrid article {
@@ -489,11 +517,69 @@ body {
   margin: 0 0 8px;
 }
 
-.metricEventsList {
+.timelineTrack {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.timelineNode {
+  min-width: 170px;
   display: grid;
   gap: 6px;
-  max-height: 220px;
-  overflow: auto;
+  border: 1px solid rgba(125, 155, 213, 0.34);
+  border-radius: 10px;
+  background: rgba(28, 45, 77, 0.75);
+  padding: 8px;
+  color: #dce8ff;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+}
+
+.timelineNode.active {
+  border-color: rgba(110, 214, 255, 0.7);
+  box-shadow: 0 0 14px rgba(110, 214, 255, 0.2);
+}
+
+.roundNode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 150, 209, 0.35);
+  background: rgba(21, 35, 61, 0.9);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.roundDelta {
+  font-size: 0.83rem;
+  color: #c9dbff;
+}
+
+.timelineConnector {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  width: 8px;
+  height: 2px;
+  background: rgba(148, 170, 216, 0.5);
+}
+
+.timelineDetailCard {
+  margin-top: 8px;
+  border: 1px solid rgba(146, 171, 220, 0.3);
+  border-radius: 10px;
+  background: rgba(26, 43, 73, 0.78);
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
 }
 
 .metricEventItem {
@@ -502,6 +588,7 @@ body {
   background: rgba(33, 53, 89, 0.75);
   border: 1px solid rgba(140, 164, 212, 0.28);
   font-size: 0.88rem;
+  white-space: normal;
 }
 
 .metricEventItem.positive {
@@ -514,6 +601,37 @@ body {
 
 .metricEventItem.strategic {
   border-color: rgba(165, 133, 255, 0.45);
+}
+
+.retryPerformanceCard {
+  border: 1px solid rgba(140, 164, 212, 0.34);
+  border-radius: 12px;
+  background: rgba(22, 38, 66, 0.84);
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.retryCardTitle {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.retryCardStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.retryDelta {
+  font-weight: 800;
+}
+
+.retryDelta.improved {
+  color: var(--positive);
+}
+
+.retryDelta.degraded {
+  color: var(--negative);
 }
 
 .ghostBtn.pulse {
@@ -601,6 +719,22 @@ body {
 
 .uiToast.strategic {
   border-color: rgba(165, 133, 255, 0.42);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(10, 18, 32, 0.55);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(91, 149, 255, 0.7), rgba(62, 111, 203, 0.8));
+  border-radius: 999px;
+  border: 2px solid rgba(10, 18, 32, 0.55);
 }
 
 @keyframes runline {

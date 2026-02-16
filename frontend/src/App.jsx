@@ -10,6 +10,18 @@ const ACTIVATION_STEPS = [
   "Generating Student Persona...",
   "Configuring Negotiation Table...",
 ];
+const COMMITMENT_LABELS = {
+  none: "No Commitment",
+  soft_commitment: "Exploring Enrollment",
+  conditional_commitment: "Conditional Yes",
+  strong_commitment: "Confirmed Enrollment",
+};
+const COMMITMENT_ICONS = {
+  none: "⚪",
+  soft_commitment: "🟡",
+  conditional_commitment: "🟠",
+  strong_commitment: "🟢",
+};
 
 function App() {
   const [programUrl, setProgramUrl] = useState("https://www.niit.com/india/building-agentic-ai-systems/");
@@ -25,6 +37,7 @@ function App() {
   const [runHistory, setRunHistory] = useState([]);
   const [counsellorName, setCounsellorName] = useState("");
   const [metricEventHistory, setMetricEventHistory] = useState([]);
+  const [selectedTimelineRound, setSelectedTimelineRound] = useState(null);
   const [activationIndex, setActivationIndex] = useState(0);
   const [metricToasts, setMetricToasts] = useState([]);
   const [uiToasts, setUiToasts] = useState([]);
@@ -63,10 +76,92 @@ function App() {
     if (momentumValue >= 40) return "soft_commitment";
     return "none";
   }, [momentumValue]);
+  const liveCommitmentLabel = COMMITMENT_LABELS[liveCommitment] || COMMITMENT_LABELS.none;
+  const liveCommitmentIcon = COMMITMENT_ICONS[liveCommitment] || COMMITMENT_ICONS.none;
   const currentRound = metrics?.round ?? stateUpdate?.round ?? 1;
   const trustBaseline = 50 + (metrics?.retry_modifier ?? 0);
   const liveTrustDelta = (metrics?.trust_index ?? trustBaseline) - trustBaseline;
   const maxRounds = stateUpdate?.max_rounds || metrics?.max_rounds || 10;
+  const roundEventSummary = useMemo(() => {
+    const roundMap = {};
+    metricEventHistory.forEach((item) => {
+      const key = item.round || 1;
+      if (!roundMap[key]) {
+        roundMap[key] = [];
+      }
+      roundMap[key].push(item);
+    });
+    return Object.entries(roundMap)
+      .map(([round, events]) => ({ round: Number(round), events }))
+      .sort((left, right) => left.round - right.round);
+  }, [metricEventHistory]);
+  const retryComparison = useMemo(() => {
+    if (runHistory.length < 2) return null;
+    const first = runHistory[0];
+    const second = runHistory[1];
+    const delta = second.score - first.score;
+    return { first, second, delta };
+  }, [runHistory]);
+  const roundInsights = useMemo(() => {
+    const objectionTokens = ["price", "cost", "expensive", "risk", "uncertain", "time", "trust", "proof"];
+    return roundEventSummary.map((row) => {
+      const roundMessages = messages.filter((m) => m.round === row.round);
+      const studentMessages = roundMessages.filter((m) => m.agent === "student");
+      const counsellorMessages = roundMessages.filter((m) => m.agent === "counsellor");
+      const latestStudent = studentMessages[studentMessages.length - 1];
+      const latestCounsellor = counsellorMessages[counsellorMessages.length - 1];
+      const studentText = (latestStudent?.content || "").toLowerCase();
+      const objectionHits = objectionTokens.reduce((count, token) => count + (studentText.includes(token) ? 1 : 0), 0);
+      const trustDelta = row.events
+        .filter((event) => event.text.toLowerCase().includes("trust"))
+        .reduce((sum, event) => sum + (parseInt(event.text, 10) || 0), 0);
+      const closeDelta = row.events
+        .filter((event) => event.text.toLowerCase().includes("close"))
+        .reduce((sum, event) => sum + (parseInt(event.text, 10) || 0), 0);
+      const tacticalMove = latestCounsellor?.strategic_intent
+        || (latestCounsellor?.techniques || []).slice(0, 2).join(", ")
+        || "Consultative follow-up";
+      const compactDelta = row.events
+        .slice(0, 3)
+        .map((event) => event.text.replace(" Resistance", "R").replace(" Trust", "T").replace(" Close Prob", "CP"))
+        .join("  ");
+      return {
+        round: row.round,
+        compactDelta: compactDelta || "No major swing",
+        emotionalShift: latestStudent?.emotional_state || "calm",
+        objectionSpike: objectionHits,
+        trustDelta,
+        closeDelta,
+        tacticalMove,
+      };
+    });
+  }, [messages, roundEventSummary]);
+  const activeRoundInsight = useMemo(() => {
+    if (!roundInsights.length) return null;
+    if (selectedTimelineRound == null) return roundInsights[roundInsights.length - 1];
+    return roundInsights.find((item) => item.round === selectedTimelineRound) || roundInsights[roundInsights.length - 1];
+  }, [roundInsights, selectedTimelineRound]);
+  const renderMetricChips = () => (
+    <>
+      <span className="metricChip">Round {metrics?.round || 1} / {maxRounds}</span>
+      <span className="metricChip">Concessions {metrics?.concession_count_counsellor ?? 0} - {metrics?.concession_count_student ?? 0}</span>
+      <span className="metricChip">Tension {metrics?.tone_escalation ?? 0}%</span>
+      <span className="metricChip enrollmentChip">Enrollment Probability {metrics?.close_probability ?? 0}%</span>
+      <span className="metricChip">{liveCommitmentIcon} {liveCommitmentLabel}</span>
+      <span className="metricChip trustChip">Trust Delta {liveTrustDelta >= 0 ? "+" : ""}{liveTrustDelta}</span>
+      <span className="metricChip">Sentiment {metrics?.sentiment_indicator || "neutral"}</span>
+    </>
+  );
+  const outcomeHeadline = useMemo(() => {
+    const winner = analysis?.judge?.winner || analysis?.winner || "no-deal";
+    if (winner === "counsellor") {
+      return `🎯 ${counsellorName || "Counsellor"} Successfully Secured Enrollment`;
+    }
+    if (winner === "student") {
+      return `⚠️ ${persona?.name || "Student"} Was Not Convinced`;
+    }
+    return "📌 Outcome: No Deal";
+  }, [analysis, counsellorName, persona]);
 
   const bgUrl = `${process.env.PUBLIC_URL || ""}/negotiation.png`;
 
@@ -100,6 +195,7 @@ function App() {
     setMetrics(null);
     setStateUpdate(null);
     setAnalysis(null);
+    setSelectedTimelineRound(null);
     setMetricToasts([]);
     setActivationIndex(0);
     setMetricEventHistory([]);
@@ -185,7 +281,9 @@ function App() {
     if (stage !== "negotiating" && stage !== "completed") return;
     const lane = projectionRef.current;
     if (!lane) return;
-    lane.scrollTo({ top: lane.scrollHeight, behavior: "smooth" });
+    requestAnimationFrame(() => {
+      lane.scrollTop = lane.scrollHeight;
+    });
   }, [allCards, stage]);
 
   const startNegotiation = async () => {
@@ -289,13 +387,12 @@ function App() {
 
     ws.onerror = () => {
       pushUiToast("WebSocket connection failed. Please retry.");
-      setStage("idle");
     };
 
     ws.onclose = () => {
       if (wsRef.current !== ws) return;
       setDrafts({});
-      setStage((prev) => (prev === "negotiating" ? "idle" : prev));
+      pushUiToast("Connection closed.", "strategic", 1800);
     };
   };
 
@@ -383,7 +480,7 @@ function App() {
               onChange={(e) => setProgramUrl(e.target.value)}
               placeholder="Enter Program URL here..."
             />
-            <button onClick={startNegotiation}>Start Live Negotiation</button>
+            <button onClick={startNegotiation}>Start Counselling Session</button>
           </div>
         </section>
       )}
@@ -444,6 +541,9 @@ function App() {
 
       {(stage === "negotiating" || stage === "completed") && (
         <section className={`arenaScene ${stage === "completed" ? "freeze" : ""}`}>
+          <div className={`metricsRibbon ${(metrics?.close_probability ?? 0) > 80 ? "glow" : ""}`}>
+            {renderMetricChips()}
+          </div>
           <div className={`momentumBar ${momentumValue > 80 ? "hot" : ""}`}>
             <div className="momentumTrack">
               <div className="momentumLeft" style={{ width: `${momentumValue}%` }} />
@@ -505,28 +605,39 @@ function App() {
             ))}
           </div>
 
-          <div className={`metricsRibbon ${(metrics?.close_probability ?? 0) > 80 ? "glow" : ""}`}>
-            <span className="metricChip">Round {metrics?.round || 1} / {maxRounds}</span>
-            <span className="metricChip">Concessions {metrics?.concession_count_counsellor ?? 0} - {metrics?.concession_count_student ?? 0}</span>
-            <span className="metricChip">Tension {metrics?.tone_escalation ?? 0}%</span>
-            <span className="metricChip">Enrollment {metrics?.close_probability ?? 0}%</span>
-            <span className="metricChip">Commitment {liveCommitment}</span>
-            <span className="metricChip">Trust Δ {liveTrustDelta >= 0 ? "+" : ""}{liveTrustDelta}</span>
-            <span className="metricChip">Sentiment {metrics?.sentiment_indicator || "neutral"}</span>
-          </div>
         </section>
+      )}
+      {stage === "negotiating" && (
+        <div className={`metricsRibbon bottomRibbon ${(metrics?.close_probability ?? 0) > 80 ? "glow" : ""}`}>
+          {renderMetricChips()}
+        </div>
       )}
 
       {stage === "completed" && analysis && (
         <section className="resultOverlay">
           <div className="resultCard">
-            <h2>RESULT: {(analysis?.judge?.winner || analysis?.winner || "no-deal").toUpperCase()}</h2>
+            <h2>{outcomeHeadline}</h2>
             <h3>Final Score: {analysis?.judge?.negotiation_score ?? 0} / 100</h3>
             <p>{analysis?.judge?.why || "Simulation completed."}</p>
+            {retryComparison && (
+              <div className="retryPerformanceCard">
+                <div className="retryCardTitle">Retry Performance</div>
+                <div className="retryCardStats">
+                  <span>Run 1 Score: {retryComparison.first.score}</span>
+                  <span>Run 2 Score: {retryComparison.second.score}</span>
+                  <span className={`retryDelta ${retryComparison.delta >= 0 ? "improved" : "degraded"}`}>
+                    {retryComparison.delta >= 0 ? "▲" : "▼"} Improvement: {retryComparison.delta >= 0 ? "+" : ""}{retryComparison.delta}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="finalMetricChips">
-              <span className="metricChip">Commitment {analysis?.judge?.commitment_signal || "none"}</span>
+              <span className="metricChip">
+                {COMMITMENT_ICONS[analysis?.judge?.commitment_signal] || COMMITMENT_ICONS.none}{" "}
+                {COMMITMENT_LABELS[analysis?.judge?.commitment_signal] || COMMITMENT_LABELS.none}
+              </span>
               <span className="metricChip">Enrollment Likelihood {analysis?.judge?.enrollment_likelihood ?? 0}%</span>
-              <span className="metricChip">Trust Δ {analysis?.judge?.trust_delta ?? 0}</span>
+              <span className="metricChip">Trust Delta {analysis?.judge?.trust_delta ?? 0}</span>
               <span className="metricChip">Primary Objection {analysis?.judge?.primary_unresolved_objection || "n/a"}</span>
             </div>
             <div className="resultGrid">
@@ -542,25 +653,49 @@ function App() {
                 <h4>Coaching Insights</h4>
                 <ul>{(analysis?.judge?.skill_recommendations || []).map((x) => <li key={x}>{x}</li>)}</ul>
               </article>
+              <article>
+                <h4>Mistakes</h4>
+                <ul>{(analysis?.judge?.mistakes || []).map((x) => <li key={x}>{x}</li>)}</ul>
+              </article>
+              <article>
+                <h4>Persona Snapshot</h4>
+                <ul>
+                  <li>Name: {persona?.name || "Unknown"}</li>
+                  <li>Career Stage: {persona?.career_stage || "n/a"}</li>
+                  <li>Risk Tolerance: {persona?.risk_tolerance || "n/a"}</li>
+                  <li>Primary Objections: {(persona?.primary_objections || []).slice(0, 2).join(", ") || "n/a"}</li>
+                </ul>
+              </article>
             </div>
-            {runHistory.length >= 2 && (
-              <p>
-                {runHistory[0].label} Score: {runHistory[0].score} | {runHistory[1].label} Score: {runHistory[1].score} | Improvement: {runHistory[1].score - runHistory[0].score >= 0 ? "+" : ""}{runHistory[1].score - runHistory[0].score}
-              </p>
-            )}
             <article className="metricEventsPanel">
               <h4>Strategic Metric Events</h4>
-              <div className="metricEventsList">
-                {metricEventHistory.length === 0 ? (
+              <div className="timelineTrack">
+                {roundInsights.length === 0 ? (
                   <div className="metricEventItem">No metric events captured.</div>
                 ) : (
-                  metricEventHistory.slice(-20).map((item) => (
-                    <div key={item.id} className={`metricEventItem ${item.tone}`}>
-                      <strong>R{item.round}</strong> {item.text}
-                    </div>
+                  roundInsights.map((row, index) => (
+                    <button
+                      key={`round-${row.round}`}
+                      className={`timelineNode ${activeRoundInsight?.round === row.round ? "active" : ""}`}
+                      onClick={() => setSelectedTimelineRound(row.round)}
+                      type="button"
+                    >
+                      <span className="roundNode">R{row.round}</span>
+                      <span className="roundDelta">{row.compactDelta}</span>
+                      {index < roundInsights.length - 1 && <span className="timelineConnector" />}
+                    </button>
                   ))
                 )}
               </div>
+              {activeRoundInsight && (
+                <div className="timelineDetailCard">
+                  <div><strong>Emotional Shift:</strong> {activeRoundInsight.emotionalShift}</div>
+                  <div><strong>Objection Spike:</strong> {activeRoundInsight.objectionSpike}</div>
+                  <div><strong>Trust Change:</strong> {activeRoundInsight.trustDelta >= 0 ? "+" : ""}{activeRoundInsight.trustDelta}</div>
+                  <div><strong>Close Probability Shift:</strong> {activeRoundInsight.closeDelta >= 0 ? "+" : ""}{activeRoundInsight.closeDelta}</div>
+                  <div><strong>Tactical Move:</strong> {activeRoundInsight.tacticalMove}</div>
+                </div>
+              )}
             </article>
             <div className="resultActions">
               <button className="downloadBtn" onClick={downloadReport}>

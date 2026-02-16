@@ -425,44 +425,48 @@ def extract_from_url(url: str) -> str:
 
 
 def _extract_response_fields(text: str) -> Dict[str, Any]:
+    raw = text or ""
     message = ""
     intent = ""
     techniques: List[str] = []
     confidence = 60
     emotional_state = "calm"
-    mode = ""
-    for raw in text.splitlines():
-        line = raw.strip()
-        upper = line.upper()
-        if upper.startswith("MESSAGE:"):
-            mode = "message"
-            message = line.split(":", 1)[1].strip()
-            continue
-        if upper.startswith("TECHNIQUES_USED:"):
-            match = re.search(r"\[(.*)\]", line)
-            if match:
-                techniques = [item.strip().strip('"').strip("'") for item in match.group(1).split(",") if item.strip()]
-            continue
-        if upper.startswith("STRATEGIC_INTENT:"):
-            intent = line.split(":", 1)[1].strip()
-            continue
-        if upper.startswith("CONFIDENCE_SCORE:"):
-            try:
-                confidence = int(float(line.split(":", 1)[1].strip()))
-            except Exception:
-                confidence = 60
-            continue
-        if upper.startswith("EMOTIONAL_STATE:"):
-            emotional_state = line.split(":", 1)[1].strip().lower()
-            continue
-        if mode == "message":
-            if line and not any(
-                upper.startswith(prefix)
-                for prefix in ("TECHNIQUES_USED:", "STRATEGIC_INTENT:", "CONFIDENCE_SCORE:", "EMOTIONAL_STATE:")
-            ):
-                message = f"{message}\n{line}".strip()
+
+    message_match = re.search(
+        r"MESSAGE:\s*(.*?)(?:\n(?:TECHNIQUES_USED|STRATEGIC_INTENT|CONFIDENCE_SCORE|EMOTIONAL_STATE)\s*:|$)",
+        raw,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if message_match:
+        message = message_match.group(1).strip()
+
+    techniques_match = re.search(r"TECHNIQUES_USED:\s*\[(.*?)\]", raw, flags=re.IGNORECASE | re.DOTALL)
+    if techniques_match:
+        techniques = [
+            item.strip().strip('"').strip("'")
+            for item in techniques_match.group(1).split(",")
+            if item.strip()
+        ]
+
+    intent_match = re.search(r"STRATEGIC_INTENT:\s*(.*)", raw, flags=re.IGNORECASE)
+    if intent_match:
+        intent = intent_match.group(1).strip()
+
+    confidence_match = re.search(r"CONFIDENCE_SCORE:\s*([0-9]+(?:\.[0-9]+)?)", raw, flags=re.IGNORECASE)
+    if confidence_match:
+        try:
+            confidence = int(float(confidence_match.group(1)))
+        except Exception:
+            confidence = 60
+
+    emotional_match = re.search(r"EMOTIONAL_STATE:\s*([a-zA-Z_ -]+)", raw, flags=re.IGNORECASE)
+    if emotional_match:
+        emotional_state = emotional_match.group(1).strip().lower()
+
     if not message:
-        message = text.strip()
+        message = raw.strip()
+
+    message = re.sub(r"\s+\n", "\n", message).strip()
     return {
         "message": message,
         "techniques": techniques,
@@ -699,6 +703,7 @@ MESSAGE: <dialogue>
 TECHNIQUES_USED: [consultative_selling, objection_reframing, roi_framing, workload_validation, etc]
 STRATEGIC_INTENT: <one sentence>
 CONFIDENCE_SCORE: <0-100>
+MESSAGE must end as a complete sentence, never cut mid-sentence.
 """
 
 
@@ -732,6 +737,7 @@ Output exactly:
 MESSAGE: <dialogue>
 EMOTIONAL_STATE: calm/frustrated/confused/excited/skeptical
 STRATEGIC_INTENT: <why responding this way>
+MESSAGE must be complete and not cut mid-sentence.
 """
 
 
