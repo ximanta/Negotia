@@ -1,5 +1,5 @@
 """
-NIIT Negotiation Arena backend.
+Program Counselling Arena
 URL-grounded analysis + Gemini-powered streamed negotiation.
 """
 
@@ -1225,6 +1225,18 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     story.append(Paragraph("Skill Recommendations", styles["Heading2"]))
     for item in judge.get("skill_recommendations", []):
         story.append(Paragraph(f"- {item}", styles["BodyText"]))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("Strategic Metric Events", styles["Heading2"]))
+    metric_events = judge.get("metric_events", [])
+    if metric_events:
+        for event in metric_events[-30:]:
+            round_value = event.get("round", "-")
+            text = str(event.get("text", "")).strip()
+            tone = str(event.get("tone", "neutral")).strip()
+            story.append(Paragraph(f"Round {round_value} [{tone}] - {text}", styles["BodyText"]))
+    else:
+        story.append(Paragraph("No metric events captured.", styles["BodyText"]))
     story.append(Spacer(1, 12))
 
     story.append(Paragraph("Transcript", styles["Heading2"]))

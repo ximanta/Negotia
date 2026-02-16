@@ -24,7 +24,7 @@ function App() {
   const [analysis, setAnalysis] = useState(null);
   const [runHistory, setRunHistory] = useState([]);
   const [counsellorName, setCounsellorName] = useState("");
-  const [initialOffers, setInitialOffers] = useState({ counsellor_offer: 0, student_offer: 0 });
+  const [metricEventHistory, setMetricEventHistory] = useState([]);
   const [activationIndex, setActivationIndex] = useState(0);
   const [metricToasts, setMetricToasts] = useState([]);
   const [uiToasts, setUiToasts] = useState([]);
@@ -40,12 +40,6 @@ function App() {
   const prevMetricsRef = useRef(null);
   const toastTimerRef = useRef({});
   const uiToastTimerRef = useRef({});
-
-  const offers = useMemo(() => {
-    const counsellor = stateUpdate?.counsellor_offer ?? initialOffers.counsellor_offer ?? 0;
-    const student = stateUpdate?.student_offer ?? initialOffers.student_offer ?? 0;
-    return { counsellor, student };
-  }, [stateUpdate, initialOffers]);
 
   const orderedDrafts = useMemo(() => Object.values(drafts), [drafts]);
   const allCards = useMemo(
@@ -63,6 +57,15 @@ function App() {
     if (momentumValue <= 35) return "Student resistance";
     return "Balanced momentum";
   }, [momentumValue]);
+  const liveCommitment = useMemo(() => {
+    if (momentumValue >= 80) return "strong_commitment";
+    if (momentumValue >= 60) return "conditional_commitment";
+    if (momentumValue >= 40) return "soft_commitment";
+    return "none";
+  }, [momentumValue]);
+  const currentRound = metrics?.round ?? stateUpdate?.round ?? 1;
+  const trustBaseline = 50 + (metrics?.retry_modifier ?? 0);
+  const liveTrustDelta = (metrics?.trust_index ?? trustBaseline) - trustBaseline;
   const maxRounds = stateUpdate?.max_rounds || metrics?.max_rounds || 10;
 
   const bgUrl = `${process.env.PUBLIC_URL || ""}/negotiation.png`;
@@ -74,8 +77,6 @@ function App() {
     const last = lastInitials[Math.floor(Math.random() * lastInitials.length)];
     return `${first} ${last}`;
   };
-
-  const formatOffer = (value) => `INR ${Number(value || 0).toLocaleString("en-IN")}`;
 
   const pushUiToast = (text, tone = "negative", timeoutMs = 2800) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -101,7 +102,7 @@ function App() {
     setAnalysis(null);
     setMetricToasts([]);
     setActivationIndex(0);
-    setInitialOffers({ counsellor_offer: 0, student_offer: 0 });
+    setMetricEventHistory([]);
     prevMetricsRef.current = null;
     setShowRestartPulse(false);
   };
@@ -157,14 +158,24 @@ function App() {
 
     if (!nextToasts.length) return;
     setMetricToasts((current) => [...current, ...nextToasts].slice(-6));
+    setMetricEventHistory((current) => {
+      const stamped = nextToasts.map((item) => ({
+        id: `${item.id}-h`,
+        text: item.text,
+        tone: item.tone,
+        round: currentRound,
+        timestamp: new Date().toISOString(),
+      }));
+      return [...current, ...stamped].slice(-80);
+    });
     nextToasts.forEach((toast) => {
       if (toastTimerRef.current[toast.id]) clearTimeout(toastTimerRef.current[toast.id]);
       toastTimerRef.current[toast.id] = setTimeout(() => {
         setMetricToasts((current) => current.filter((item) => item.id !== toast.id));
         delete toastTimerRef.current[toast.id];
-      }, 1500);
+      }, 3200);
     });
-  }, [metrics]);
+  }, [metrics, currentRound]);
 
   useEffect(() => {
     if (stage === "completed") setShowRestartPulse(true);
@@ -260,14 +271,6 @@ function App() {
         setMetrics(payload.data);
       } else if (payload.type === "state_update") {
         setStateUpdate(payload.data);
-      } else if (payload.type === "session_ready") {
-        const data = payload.data || {};
-        if (data.initial_offers) {
-          setInitialOffers({
-            counsellor_offer: data.initial_offers.counsellor_offer ?? 0,
-            student_offer: data.initial_offers.student_offer ?? 0,
-          });
-        }
       } else if (payload.type === "analysis") {
         setAnalysis(payload.data);
         setRunHistory((prev) => [
@@ -347,7 +350,7 @@ function App() {
         session_id: sessionId,
         auth_token: authToken,
         transcript: messages,
-        analysis: analysis.judge || {},
+        analysis: { ...(analysis.judge || {}), metric_events: metricEventHistory },
       }),
     });
     if (!res.ok) {
@@ -456,12 +459,12 @@ function App() {
             <article className={`agentIdentity counsellor ${momentumValue > 65 ? "glow" : ""}`}>
               <h3>{counsellorName || "Admissions Counsellor"}</h3>
               <p>{program?.program_name || "Program"}</p>
-              <strong>{formatOffer(offers.counsellor)}</strong>
+              <strong>Enrollment Guide</strong>
             </article>
             <article className={`agentIdentity student ${momentumValue < 40 ? "glow" : ""}`}>
               <h3>Prospective Student</h3>
               <p>{persona?.name || "Persona"}</p>
-              <strong>{formatOffer(offers.student)}</strong>
+              <strong>{persona?.persona_type || "Learner Profile"}</strong>
             </article>
           </div>
 
@@ -503,11 +506,13 @@ function App() {
           </div>
 
           <div className={`metricsRibbon ${(metrics?.close_probability ?? 0) > 80 ? "glow" : ""}`}>
-            <span>Round {metrics?.round || 1} / {maxRounds}</span>
-            <span>Concessions: {metrics?.concession_count_counsellor ?? 0} - {metrics?.concession_count_student ?? 0}</span>
-            <span>Tension: {metrics?.tone_escalation ?? 0}%</span>
-            <span>Enrollment Probability: {metrics?.close_probability ?? 0}%</span>
-            <span>Sentiment: {metrics?.sentiment_indicator || "neutral"}</span>
+            <span className="metricChip">Round {metrics?.round || 1} / {maxRounds}</span>
+            <span className="metricChip">Concessions {metrics?.concession_count_counsellor ?? 0} - {metrics?.concession_count_student ?? 0}</span>
+            <span className="metricChip">Tension {metrics?.tone_escalation ?? 0}%</span>
+            <span className="metricChip">Enrollment {metrics?.close_probability ?? 0}%</span>
+            <span className="metricChip">Commitment {liveCommitment}</span>
+            <span className="metricChip">Trust Δ {liveTrustDelta >= 0 ? "+" : ""}{liveTrustDelta}</span>
+            <span className="metricChip">Sentiment {metrics?.sentiment_indicator || "neutral"}</span>
           </div>
         </section>
       )}
@@ -518,7 +523,12 @@ function App() {
             <h2>RESULT: {(analysis?.judge?.winner || analysis?.winner || "no-deal").toUpperCase()}</h2>
             <h3>Final Score: {analysis?.judge?.negotiation_score ?? 0} / 100</h3>
             <p>{analysis?.judge?.why || "Simulation completed."}</p>
-            <p>Commitment: <strong>{analysis?.judge?.commitment_signal || "none"}</strong> | Enrollment Likelihood: <strong>{analysis?.judge?.enrollment_likelihood ?? 0}%</strong> | Trust Delta: <strong>{analysis?.judge?.trust_delta ?? 0}</strong></p>
+            <div className="finalMetricChips">
+              <span className="metricChip">Commitment {analysis?.judge?.commitment_signal || "none"}</span>
+              <span className="metricChip">Enrollment Likelihood {analysis?.judge?.enrollment_likelihood ?? 0}%</span>
+              <span className="metricChip">Trust Δ {analysis?.judge?.trust_delta ?? 0}</span>
+              <span className="metricChip">Primary Objection {analysis?.judge?.primary_unresolved_objection || "n/a"}</span>
+            </div>
             <div className="resultGrid">
               <article>
                 <h4>Key Turning Points</h4>
@@ -538,12 +548,26 @@ function App() {
                 {runHistory[0].label} Score: {runHistory[0].score} | {runHistory[1].label} Score: {runHistory[1].score} | Improvement: {runHistory[1].score - runHistory[0].score >= 0 ? "+" : ""}{runHistory[1].score - runHistory[0].score}
               </p>
             )}
+            <article className="metricEventsPanel">
+              <h4>Strategic Metric Events</h4>
+              <div className="metricEventsList">
+                {metricEventHistory.length === 0 ? (
+                  <div className="metricEventItem">No metric events captured.</div>
+                ) : (
+                  metricEventHistory.slice(-20).map((item) => (
+                    <div key={item.id} className={`metricEventItem ${item.tone}`}>
+                      <strong>R{item.round}</strong> {item.text}
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
             <div className="resultActions">
               <button className="downloadBtn" onClick={downloadReport}>
                 Download Coaching Report (PDF)
               </button>
               <button className="downloadBtn" onClick={retrySimulation}>
-                Retry Simulation (Improved Strategy)
+                Retry to Improve
               </button>
               <button className={`ghostBtn ${showRestartPulse ? "pulse" : ""}`} onClick={startNewSimulation}>
                 Start New Simulation

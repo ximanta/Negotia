@@ -263,13 +263,14 @@ body {
 }
 
 .projectionCard {
-  width: min(58%, 760px);
+  width: min(72%, 980px);
   background: rgba(17, 34, 51, 0.85);
   backdrop-filter: blur(4px);
   border-radius: 12px;
   border: 1px solid rgba(165, 192, 238, 0.3);
   padding: 11px 12px;
   animation: cardIn 0.36s ease-out;
+  overflow: visible;
 }
 
 .projectionCard.counsellor {
@@ -297,7 +298,8 @@ body {
 
 .projectionCard p {
   margin: 0 0 7px;
-  line-height: 1.35;
+  line-height: 1.45;
+  font-size: 0.98rem;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -339,12 +341,13 @@ body {
 }
 
 .metricToast {
-  padding: 8px 11px;
+  padding: 12px 16px;
   border-radius: 999px;
-  font-size: 0.83rem;
+  font-size: 0.96rem;
   font-weight: 700;
   text-align: center;
   animation: toastUp 1.5s ease forwards;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.28);
 }
 
 .metricToast.positive {
@@ -372,11 +375,12 @@ body {
   transform: translateX(-50%);
   width: min(96vw, 1300px);
   display: flex;
-  gap: 18px;
+  gap: 10px;
   overflow-x: auto;
-  white-space: nowrap;
+  white-space: normal;
+  flex-wrap: wrap;
   padding: 12px 14px;
-  border-radius: 999px;
+  border-radius: 16px;
   border: 1px solid rgba(152, 177, 230, 0.28);
   background: rgba(15, 26, 46, 0.87);
   color: #dce8ff;
@@ -388,6 +392,15 @@ body {
 
 .metricsRibbon span {
   font-size: 0.9rem;
+}
+
+.metricChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(169, 192, 240, 0.36);
+  background: rgba(22, 38, 66, 0.92);
 }
 
 .freeze {
@@ -405,7 +418,7 @@ body {
 }
 
 .resultCard {
-  width: min(1100px, 95vw);
+  width: min(1400px, 97vw);
   max-height: 90vh;
   overflow: auto;
   border-radius: 16px;
@@ -455,6 +468,52 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.finalMetricChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metricEventsPanel {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 170, 216, 0.3);
+  background: rgba(18, 33, 60, 0.84);
+  padding: 10px;
+}
+
+.metricEventsPanel h4 {
+  margin: 0 0 8px;
+}
+
+.metricEventsList {
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.metricEventItem {
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(33, 53, 89, 0.75);
+  border: 1px solid rgba(140, 164, 212, 0.28);
+  font-size: 0.88rem;
+}
+
+.metricEventItem.positive {
+  border-color: rgba(73, 230, 140, 0.45);
+}
+
+.metricEventItem.negative {
+  border-color: rgba(255, 111, 125, 0.45);
+}
+
+.metricEventItem.strategic {
+  border-color: rgba(165, 133, 255, 0.45);
 }
 
 .ghostBtn.pulse {
@@ -628,7 +687,7 @@ body {
 
 @media (max-width: 1080px) {
   .projectionCard {
-    width: min(78%, 760px);
+    width: min(86%, 860px);
   }
   .resultGrid {
     grid-template-columns: 1fr;
