@@ -24,6 +24,39 @@ const COMMITMENT_ICONS = {
 };
 
 const PILLAR_ITEM_TRUNCATE = 120;
+const STUDENT_CONTROL_PREFIXES = [
+  "INTERNAL_THOUGHT:",
+  "UPDATED_STATE:",
+  "EMOTIONAL_STATE:",
+  "STRATEGIC_INTENT:",
+];
+
+const extractSpokenText = (value) => {
+  const raw = String(value || "");
+  const inlineMessageMatch = raw.match(
+    /MESSAGE:\s*(.*?)(?:(?:\n|\r|\s)(?:INTERNAL_THOUGHT|UPDATED_STATE|EMOTIONAL_STATE|STRATEGIC_INTENT|TECHNIQUES_USED|CONFIDENCE_SCORE)\s*:|$)/is
+  );
+  if (inlineMessageMatch?.[1]?.trim()) {
+    return inlineMessageMatch[1].trim();
+  }
+  const lines = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!lines.length) return "";
+  const spoken = [];
+  lines.forEach((line) => {
+    const upper = line.toUpperCase();
+    if (STUDENT_CONTROL_PREFIXES.some((prefix) => upper.startsWith(prefix))) return;
+    if (upper.startsWith("MESSAGE:")) {
+      const content = line.slice("MESSAGE:".length).trim();
+      if (content) spoken.push(content);
+      return;
+    }
+    spoken.push(line);
+  });
+  return spoken.join(" ").trim();
+};
 
 function App() {
   const [programUrl, setProgramUrl] = useState("https://www.niit.com/india/building-agentic-ai-systems/");
@@ -50,16 +83,28 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [pendingStart, setPendingStart] = useState(false);
   const [expandedContent, setExpandedContent] = useState(null);
+  const [showReportDashboard, setShowReportDashboard] = useState(false);
 
   const wsRef = useRef(null);
   const projectionRef = useRef(null);
   const prevMetricsRef = useRef(null);
   const toastTimerRef = useRef({});
   const uiToastTimerRef = useRef({});
+  const pendingThoughtsRef = useRef({});
 
   const orderedDrafts = useMemo(() => Object.values(drafts), [drafts]);
   const allCards = useMemo(
-    () => [...messages, ...orderedDrafts.map((d) => ({ agent: d.agent, content: d.text, draft: true, id: d.id }))],
+    () => [
+      ...messages,
+      ...orderedDrafts
+        .map((d) => ({
+          agent: d.agent,
+          content: d.agent === "student" ? extractSpokenText(d.text) : d.text,
+          draft: true,
+          id: d.id,
+        }))
+        .filter((card) => String(card.content || "").trim()),
+    ],
     [messages, orderedDrafts]
   );
 
@@ -227,6 +272,8 @@ function App() {
     setActivationIndex(0);
     setMetricEventHistory([]);
     setExpandedContent(null);
+    pendingThoughtsRef.current = {};
+    setShowReportDashboard(false);
     prevMetricsRef.current = null;
     setShowRestartPulse(false);
   };
@@ -401,14 +448,30 @@ function App() {
           const current = prev[data.message_id] || { id: data.message_id, agent: data.agent, text: "" };
           return { ...prev, [data.message_id]: { ...current, text: `${current.text}${data.text}` } };
         });
+      } else if (payload.type === "student_thought") {
+        const data = payload.data || {};
+        if (data.message_id && data.thought) {
+          pendingThoughtsRef.current = { ...pendingThoughtsRef.current, [data.message_id]: data.thought };
+        }
       } else if (payload.type === "message_complete") {
         const msg = payload.data;
-        setMessages((prev) => [...prev, msg]);
+        const thoughtText = msg.internal_thought || pendingThoughtsRef.current[msg.id] || "";
+        const normalized = {
+          ...msg,
+          content: msg.agent === "student" ? extractSpokenText(msg.content) : msg.content,
+          internal_thought: thoughtText,
+        };
+        setMessages((prev) => [...prev, normalized]);
         setDrafts((prev) => {
           const next = { ...prev };
           delete next[msg.id];
           return next;
         });
+        if (pendingThoughtsRef.current[msg.id]) {
+          const next = { ...pendingThoughtsRef.current };
+          delete next[msg.id];
+          pendingThoughtsRef.current = next;
+        }
       } else if (payload.type === "metrics_update") {
         setMetrics(payload.data);
       } else if (payload.type === "state_update") {
@@ -423,6 +486,7 @@ function App() {
           },
         ]);
         setStage("completed");
+        setShowReportDashboard(false);
       } else if (payload.type === "error") {
         pushUiToast(payload.data?.message || "Unexpected backend error");
         setStage("idle");
@@ -470,6 +534,7 @@ function App() {
     setRunHistory([]);
     setCounsellorName("");
     setStage("idle");
+    setShowReportDashboard(false);
   };
 
   const retrySimulation = () => {
@@ -479,6 +544,7 @@ function App() {
     }
     resetRun();
     setStage("negotiating");
+    setShowReportDashboard(false);
     startWebsocketNegotiation(sessionId, authToken, true);
   };
 
@@ -608,8 +674,15 @@ function App() {
         </section>
       )}
 
-      {(stage === "negotiating" || stage === "completed") && (
-        <section className={`arenaScene ${stage === "completed" ? "freeze" : ""}`}>
+      {(stage === "negotiating" || (stage === "completed" && !showReportDashboard)) && (
+        <section className="arenaScene">
+          {stage === "completed" && !showReportDashboard && (
+            <div className="arenaTopActions">
+              <button className="downloadBtn viewReportBtn" onClick={() => setShowReportDashboard(true)}>
+                View Report
+              </button>
+            </div>
+          )}
           <div className={`metricsRibbon ${(metrics?.close_probability ?? 0) > 80 ? "glow" : ""}`}>
             {renderMetricChips()}
           </div>
@@ -649,6 +722,15 @@ function App() {
                   <span>{msg.round ? `Round ${msg.round}` : "Streaming"}</span>
                 </header>
                 <p>{msg.content}</p>
+                {msg.agent === "student" && msg.internal_thought && (
+                  <button
+                    type="button"
+                    className="thoughtBtn"
+                    onClick={() => setExpandedContent({ title: "Internal Thought", text: msg.internal_thought })}
+                  >
+                    Internal Thought
+                  </button>
+                )}
                 {msg.strategic_intent && (
                   <details>
                     <summary>Strategic Intent</summary>
@@ -678,11 +760,10 @@ function App() {
               {renderMetricChips()}
             </div>
           )}
-
         </section>
       )}
 
-      {stage === "completed" && analysis && (
+      {stage === "completed" && analysis && showReportDashboard && (
         <section className="resultOverlay">
           <div className="resultCard">
             <div className="resultScrollBody">

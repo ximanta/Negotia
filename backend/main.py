@@ -48,9 +48,17 @@ def _env_int(name: str, default: int, minimum: int, maximum: int) -> int:
     return max(minimum, min(maximum, value))
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
 DEFAULT_NEGOTIATION_MAX_ROUNDS = _env_int("NEGOTIATION_MAX_ROUNDS", 10, 1, 50)
 NEGOTIATION_MAX_ROUNDS_LIMIT = _env_int("NEGOTIATION_MAX_ROUNDS_LIMIT", 20, 1, 100)
 AUTH_TOKEN_TTL_SECONDS = _env_int("AUTH_TOKEN_TTL_SECONDS", 43200, 60, 604800)
+NEGOTIATION_DEBUG_TRACE = _env_bool("NEGOTIATION_DEBUG_TRACE", True)
 
 app = FastAPI(title="AI Negotiation Arena")
 app.add_middleware(
@@ -84,6 +92,44 @@ def get_client_and_models() -> Tuple[genai.Client, str, str]:
     return CLIENT, NEGOTIATION_MODEL_NAME, JUDGE_MODEL_NAME
 
 
+ARCHETYPE_WEIGHTS: List[Tuple[str, int]] = [
+    ("desperate_switcher", 40),
+    ("skeptical_shopper", 30),
+    ("fomo_victim", 20),
+    ("drifter", 10),
+]
+
+ARCHETYPE_LABELS: Dict[str, str] = {
+    "desperate_switcher": "Desperate Switcher",
+    "skeptical_shopper": "Skeptical Comparison Shopper",
+    "fomo_victim": "FOMO Victim",
+    "drifter": "Drifter",
+}
+
+ARCHETYPE_SOULS: Dict[str, Dict[str, str]] = {
+    "desperate_switcher": {
+        "soul": "Fear",
+        "trigger": "I will be left behind.",
+        "behavior": "Asks for guaranteed placement and gets overwhelmed by technical jargon.",
+    },
+    "skeptical_shopper": {
+        "soul": "Distrust",
+        "trigger": "They are trying to loot me.",
+        "behavior": "Compares with YouTube/Udemy and challenges value and refunds.",
+    },
+    "drifter": {
+        "soul": "Laziness/Indifference",
+        "trigger": "Parents forced me.",
+        "behavior": "Focuses on attendance, holidays, and minimum effort to pass.",
+    },
+    "fomo_victim": {
+        "soul": "Greed/Hype",
+        "trigger": "AI is the new crypto.",
+        "behavior": "Wants advanced AI outcomes without foundations.",
+    },
+}
+
+
 class ProgramSummary(TypedDict):
     program_name: str
     value_proposition: str
@@ -108,9 +154,17 @@ class ProgramSummary(TypedDict):
 
 class PersonaProfile(TypedDict):
     name: str
+    archetype_id: str
+    archetype_label: str
+    backstory: str
+    trigger_event: str
+    hidden_secret: str
+    misconception: str
+    communication_style: str
+    common_phrases: List[str]
+    persona_type: str
     background: str
     career_stage: str
-    persona_type: str
     financial_sensitivity: str
     risk_tolerance: str
     emotional_tone: str
@@ -119,6 +173,9 @@ class PersonaProfile(TypedDict):
     expected_roi_months: int
     affordability_concern_level: int
     willingness_to_invest_score: int
+    financial_anxiety: int
+    skepticism: int
+    confusion_level: int
 
 
 class AnalyzeUrlRequest(BaseModel):
@@ -160,8 +217,10 @@ class NegotiationState(TypedDict):
     round: int
     max_rounds: int
     messages: List[Dict[str, Any]]
+    history_for_reporting: List[Dict[str, Any]]
     counsellor_position: Dict[str, Any]
     student_position: Dict[str, Any]
+    student_inner_state: Dict[str, int]
     program: ProgramSummary
     persona: PersonaProfile
     deal_status: str
@@ -172,6 +231,8 @@ class NegotiationState(TypedDict):
 SESSION_STORE: Dict[str, Dict[str, Any]] = {}
 AUTH_TOKENS: Dict[str, float] = {}
 AUTH_FILE = Path(__file__).with_name("auth.json")
+TRACEABILITY_FILE = Path(__file__).with_name("conversation_tracebility.json")
+DEBUG_TRACE_FILE = Path(__file__).with_name("negotiation_debug_trace.jsonl")
 
 class ClientStreamClosed(Exception):
     """Raised when the websocket client disconnects during streaming."""
@@ -203,6 +264,62 @@ def _issue_auth_token() -> str:
     token = uuid.uuid4().hex
     AUTH_TOKENS[token] = datetime.now().timestamp() + AUTH_TOKEN_TTL_SECONDS
     return token
+
+
+def _truncate_trace_text(value: Any, limit: int = 240) -> str:
+    text = str(value or "")
+    if len(text) <= limit:
+        return text
+    return f"{text[:limit]}...(truncated {len(text) - limit} chars)"
+
+
+def _collect_candidate_finish_reasons(response: Any) -> List[str]:
+    reasons: List[str] = []
+    for candidate in getattr(response, "candidates", []) or []:
+        reason = str(getattr(candidate, "finish_reason", "")).strip()
+        if reason:
+            reasons.append(reason)
+    return reasons
+
+
+def _write_debug_trace(event: str, payload: Dict[str, Any]) -> None:
+    if not NEGOTIATION_DEBUG_TRACE:
+        return
+    entry = {
+        "ts": datetime.now().isoformat(),
+        "event": event,
+        **payload,
+    }
+    try:
+        with DEBUG_TRACE_FILE.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(_to_plain_json(entry), ensure_ascii=False) + "\n")
+    except Exception:
+        logger.exception("Failed to write debug trace event=%s", event)
+
+
+def _emit_conversation_traceability(session_id: str, state: NegotiationState, analysis: Dict[str, Any]) -> None:
+    trace_payload = {
+        "generated_at": datetime.now().isoformat(),
+        "session_id": session_id,
+        "deal_status": state.get("deal_status"),
+        "round": state.get("round"),
+        "max_rounds": state.get("max_rounds"),
+        "persona": state.get("persona"),
+        "program": {
+            "program_name": state.get("program", {}).get("program_name"),
+            "program_fee_inr": state.get("program", {}).get("program_fee_inr"),
+        },
+        "student_inner_state": state.get("student_inner_state"),
+        "negotiation_metrics": state.get("negotiation_metrics"),
+        "final_offers": {
+            "counsellor": state.get("counsellor_position", {}).get("current_offer"),
+            "student": state.get("student_position", {}).get("current_offer"),
+        },
+        "analysis": analysis,
+        "transcript": state.get("messages", []),
+        "history_for_reporting": state.get("history_for_reporting", []),
+    }
+    TRACEABILITY_FILE.write_text(json.dumps(trace_payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def _validate_auth_token(token: str) -> bool:
@@ -425,21 +542,130 @@ def extract_from_url(url: str) -> str:
         return f"Error extracting from URL: {str(exc)}"
 
 
+def _extract_labeled_block(raw: str, label: str, stop_labels: List[str]) -> str:
+    stop_pattern = "|".join(re.escape(item) for item in stop_labels)
+    pattern = rf"{re.escape(label)}:\s*(.*?)(?:\n(?:{stop_pattern})\s*:|$)"
+    match = re.search(pattern, raw, flags=re.IGNORECASE | re.DOTALL)
+    return match.group(1).strip() if match else ""
+
+
+def _extract_message_block(raw: str) -> str:
+    # Handles both multi-line and single-line labeled output where control labels may be inline.
+    pattern = (
+        r"MESSAGE:\s*(.*?)(?:(?:\n|\r|\s)"
+        r"(?:INTERNAL_THOUGHT|UPDATED_STATE|EMOTIONAL_STATE|STRATEGIC_INTENT|TECHNIQUES_USED|CONFIDENCE_SCORE)\s*:|$)"
+    )
+    match = re.search(pattern, raw, flags=re.IGNORECASE | re.DOTALL)
+    if not match:
+        return ""
+    message = match.group(1).strip()
+    message = re.sub(
+        r"(?:INTERNAL_THOUGHT|UPDATED_STATE|EMOTIONAL_STATE|STRATEGIC_INTENT|TECHNIQUES_USED|CONFIDENCE_SCORE)\s*:.*$",
+        "",
+        message,
+        flags=re.IGNORECASE | re.DOTALL,
+    ).strip()
+    return message
+
+
+def _extract_first_json_object(raw: str) -> Dict[str, Any]:
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return {}
+    try:
+        parsed = json.loads(raw[start : end + 1])
+    except Exception:
+        return {}
+    if isinstance(parsed, dict):
+        return parsed
+    return {}
+
+
+def _extract_unlabeled_message(raw: str) -> str:
+    lines = [line.strip() for line in (raw or "").splitlines() if line.strip()]
+    if not lines:
+        return ""
+    label_prefixes = (
+        "INTERNAL_THOUGHT:",
+        "UPDATED_STATE:",
+        "MESSAGE:",
+        "EMOTIONAL_STATE:",
+        "STRATEGIC_INTENT:",
+        "TECHNIQUES_USED:",
+        "CONFIDENCE_SCORE:",
+    )
+    cleaned = [line for line in lines if not line.upper().startswith(label_prefixes)]
+    return " ".join(cleaned).strip()
+
+
+def _clamp_score(value: Any, fallback: int = 50) -> int:
+    try:
+        parsed = int(float(value))
+    except Exception:
+        parsed = fallback
+    return max(0, min(100, parsed))
+
+
+def _merge_student_inner_state(current: Dict[str, int], updates: Dict[str, Any]) -> Dict[str, int]:
+    merged = dict(current)
+    for key in ("trust_level", "financial_anxiety", "skepticism", "confusion_level"):
+        merged[key] = _clamp_score(updates.get(key, merged.get(key, 50)), merged.get(key, 50))
+    return merged
+
+
+def _extract_chunk_text(chunk: Any) -> str:
+    text = getattr(chunk, "text", None)
+    if isinstance(text, str) and text.strip():
+        return text
+
+    fragments: List[str] = []
+    for candidate in getattr(chunk, "candidates", []) or []:
+        content = getattr(candidate, "content", None)
+        if not content:
+            continue
+        for part in getattr(content, "parts", []) or []:
+            part_text = getattr(part, "text", None)
+            if part_text:
+                fragments.append(part_text)
+    return "".join(fragments)
+
+
+def _extract_response_text_from_non_stream(response: Any) -> str:
+    parts: List[str] = []
+    direct_text = getattr(response, "text", None)
+    if isinstance(direct_text, str) and direct_text.strip():
+        parts.append(direct_text)
+    for candidate in getattr(response, "candidates", []) or []:
+        content = getattr(candidate, "content", None)
+        if not content:
+            continue
+        for part in getattr(content, "parts", []) or []:
+            part_text = getattr(part, "text", None)
+            if part_text:
+                parts.append(part_text)
+    return "".join(parts).strip()
+
+
 def _extract_response_fields(text: str) -> Dict[str, Any]:
     raw = text or ""
-    message = ""
-    intent = ""
+    message = _extract_message_block(raw)
     techniques: List[str] = []
+    intent = _extract_labeled_block(raw, "STRATEGIC_INTENT", ["MESSAGE", "EMOTIONAL_STATE", "CONFIDENCE_SCORE"])
+    thought = _extract_labeled_block(
+        raw,
+        "INTERNAL_THOUGHT",
+        ["UPDATED_STATE", "MESSAGE", "STRATEGIC_INTENT", "EMOTIONAL_STATE"],
+    )
+    updated_state_raw = _extract_labeled_block(
+        raw,
+        "UPDATED_STATE",
+        ["MESSAGE", "STRATEGIC_INTENT", "EMOTIONAL_STATE", "INTERNAL_THOUGHT"],
+    )
+    updated_state = _extract_first_json_object(updated_state_raw)
+
     confidence = 60
     emotional_state = "calm"
-
-    message_match = re.search(
-        r"MESSAGE:\s*(.*?)(?:\n(?:TECHNIQUES_USED|STRATEGIC_INTENT|CONFIDENCE_SCORE|EMOTIONAL_STATE)\s*:|$)",
-        raw,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if message_match:
-        message = message_match.group(1).strip()
 
     techniques_match = re.search(r"TECHNIQUES_USED:\s*\[(.*?)\]", raw, flags=re.IGNORECASE | re.DOTALL)
     if techniques_match:
@@ -448,10 +674,6 @@ def _extract_response_fields(text: str) -> Dict[str, Any]:
             for item in techniques_match.group(1).split(",")
             if item.strip()
         ]
-
-    intent_match = re.search(r"STRATEGIC_INTENT:\s*(.*)", raw, flags=re.IGNORECASE)
-    if intent_match:
-        intent = intent_match.group(1).strip()
 
     confidence_match = re.search(r"CONFIDENCE_SCORE:\s*([0-9]+(?:\.[0-9]+)?)", raw, flags=re.IGNORECASE)
     if confidence_match:
@@ -465,7 +687,7 @@ def _extract_response_fields(text: str) -> Dict[str, Any]:
         emotional_state = emotional_match.group(1).strip().lower()
 
     if not message:
-        message = raw.strip()
+        message = _extract_unlabeled_message(raw)
 
     message = re.sub(r"\s+\n", "\n", message).strip()
     return {
@@ -474,6 +696,8 @@ def _extract_response_fields(text: str) -> Dict[str, Any]:
         "intent": intent,
         "confidence_score": max(0, min(100, confidence)),
         "emotional_state": emotional_state,
+        "internal_thought": thought,
+        "updated_state": updated_state,
     }
 
 
@@ -572,41 +796,71 @@ PAGE_TEXT:
 
 def _generate_persona(program: ProgramSummary) -> PersonaProfile:
     client, negotiation_model_name, _ = get_client_and_models()
+    archetype_id = random.choices(
+        [item[0] for item in ARCHETYPE_WEIGHTS],
+        weights=[item[1] for item in ARCHETYPE_WEIGHTS],
+        k=1,
+    )[0]
+    archetype = ARCHETYPE_SOULS.get(archetype_id, ARCHETYPE_SOULS["desperate_switcher"])
     prompt = f"""
-Generate a realistic prospective student persona for this course and call the function.
-Use one archetype from: cost-conscious, working-professional, confused-explorer, career-switcher, ambitious-builder.
+Generate a realistic Indian-context prospective student persona and call the function.
+You MUST keep archetype_id exactly as: {archetype_id}
+Archetype label: {ARCHETYPE_LABELS.get(archetype_id, archetype_id)}
+Archetype soul: {archetype['soul']}
+Archetype trigger: {archetype['trigger']}
+Archetype behavior: {archetype['behavior']}
+
+Use realistic Indian English context: package, fresher, passing out year, backlog, tension, placement.
+No profanity. Keep spoken behavior human, repetitive when anxiety remains unresolved.
 PROGRAM:
 {json.dumps(program)}
 """
     fallback: PersonaProfile = {
-        "name": random.choice(["Aman", "Riya", "Saurabh", "Neha"]),
-        "background": "Prospective learner evaluating a new AI upskilling path.",
+        "name": random.choice(["Aman", "Riya", "Saurabh", "Neha", "Anjali", "Nikhil"]),
+        "archetype_id": archetype_id,
+        "archetype_label": ARCHETYPE_LABELS.get(archetype_id, archetype_id),
+        "backstory": "Non-IT fresher exploring AI course after delayed placements.",
+        "trigger_event": archetype["trigger"],
+        "hidden_secret": "Has not told counsellor yet about serious family pressure around job timeline.",
+        "misconception": "Believes a certificate directly guarantees package without fundamentals.",
+        "communication_style": random.choice(["timid", "aggressive", "confused", "challenging"]),
+        "common_phrases": ["Is placement guaranteed?", "I am from middle class family", "I am getting tension"],
+        "persona_type": archetype_id,
+        "background": "Prospective learner evaluating an AI upskilling path.",
         "career_stage": random.choice(["early", "mid"]),
-        "persona_type": random.choice(
-            ["cost-conscious", "working-professional", "confused-explorer", "career-switcher", "ambitious-builder"]
-        ),
         "financial_sensitivity": random.choice(["medium", "high"]),
         "risk_tolerance": random.choice(["low", "medium"]),
-        "emotional_tone": random.choice(["calm", "skeptical", "confused"]),
-        "primary_objections": ["Program clarity", "Career ROI", "Time commitment", "Fee and discount"],
-        "walk_away_likelihood": round(random.uniform(0.2, 0.6), 2),
-        "expected_roi_months": random.randint(6, 18),
-        "affordability_concern_level": random.randint(35, 85),
-        "willingness_to_invest_score": random.randint(35, 75),
+        "emotional_tone": random.choice(["skeptical", "confused", "anxious"]),
+        "primary_objections": ["Placement credibility", "Fee value", "Difficulty for freshers", "Time commitment"],
+        "walk_away_likelihood": round(random.uniform(0.25, 0.75), 2),
+        "expected_roi_months": random.randint(4, 18),
+        "affordability_concern_level": random.randint(45, 90),
+        "willingness_to_invest_score": random.randint(25, 75),
+        "financial_anxiety": random.randint(45, 95),
+        "skepticism": random.randint(35, 90),
+        "confusion_level": random.randint(25, 85),
     }
     parsed = _call_function_json(
         client=client,
         model_name=negotiation_model_name,
         prompt=prompt,
         function_name="set_student_persona",
-        function_description="Return a structured prospective student persona.",
+        function_description="Return a structured Indian student persona with narrative depth and hidden blockers.",
         parameters_schema={
             "type": "object",
             "properties": {
                 "name": {"type": "string"},
+                "archetype_id": {"type": "string", "enum": list(ARCHETYPE_LABELS.keys())},
+                "archetype_label": {"type": "string"},
+                "backstory": {"type": "string"},
+                "trigger_event": {"type": "string"},
+                "hidden_secret": {"type": "string"},
+                "misconception": {"type": "string"},
+                "communication_style": {"type": "string"},
+                "common_phrases": {"type": "array", "items": {"type": "string"}},
+                "persona_type": {"type": "string"},
                 "background": {"type": "string"},
                 "career_stage": {"type": "string"},
-                "persona_type": {"type": "string"},
                 "financial_sensitivity": {"type": "string"},
                 "risk_tolerance": {"type": "string"},
                 "emotional_tone": {"type": "string"},
@@ -615,12 +869,23 @@ PROGRAM:
                 "expected_roi_months": {"type": "integer"},
                 "affordability_concern_level": {"type": "integer"},
                 "willingness_to_invest_score": {"type": "integer"},
+                "financial_anxiety": {"type": "integer"},
+                "skepticism": {"type": "integer"},
+                "confusion_level": {"type": "integer"},
             },
             "required": [
                 "name",
+                "archetype_id",
+                "archetype_label",
+                "backstory",
+                "trigger_event",
+                "hidden_secret",
+                "misconception",
+                "communication_style",
+                "common_phrases",
+                "persona_type",
                 "background",
                 "career_stage",
-                "persona_type",
                 "financial_sensitivity",
                 "risk_tolerance",
                 "emotional_tone",
@@ -629,23 +894,42 @@ PROGRAM:
                 "expected_roi_months",
                 "affordability_concern_level",
                 "willingness_to_invest_score",
+                "financial_anxiety",
+                "skepticism",
+                "confusion_level",
             ],
         },
         fallback=fallback,
     )
     parsed = _to_plain_json(parsed)
+    parsed["archetype_id"] = str(parsed.get("archetype_id") or archetype_id)
+    if parsed["archetype_id"] not in ARCHETYPE_LABELS:
+        parsed["archetype_id"] = archetype_id
+    parsed["archetype_label"] = str(
+        parsed.get("archetype_label") or ARCHETYPE_LABELS.get(parsed["archetype_id"], parsed["archetype_id"])
+    )
+    parsed["persona_type"] = str(parsed.get("persona_type") or parsed["archetype_id"])
     parsed["walk_away_likelihood"] = float(max(0.0, min(1.0, float(parsed.get("walk_away_likelihood", 0.4)))))
-    parsed["expected_roi_months"] = int(max(1, min(60, int(parsed.get("expected_roi_months", fallback["expected_roi_months"])))))
+    parsed["expected_roi_months"] = int(
+        max(1, min(60, int(parsed.get("expected_roi_months", fallback["expected_roi_months"]))))
+    )
     parsed["affordability_concern_level"] = int(
         max(0, min(100, int(parsed.get("affordability_concern_level", fallback["affordability_concern_level"])))
     ))
     parsed["willingness_to_invest_score"] = int(
         max(0, min(100, int(parsed.get("willingness_to_invest_score", fallback["willingness_to_invest_score"])))
     ))
+    parsed["financial_anxiety"] = _clamp_score(parsed.get("financial_anxiety", fallback["financial_anxiety"]))
+    parsed["skepticism"] = _clamp_score(parsed.get("skepticism", fallback["skepticism"]))
+    parsed["confusion_level"] = _clamp_score(parsed.get("confusion_level", fallback["confusion_level"]))
+    parsed["common_phrases"] = [str(item) for item in (parsed.get("common_phrases") or fallback["common_phrases"])][:6]
     return parsed
 
 
 def _build_counsellor_prompt(state: NegotiationState) -> str:
+    visible_persona = dict(state["persona"])
+    visible_persona.pop("hidden_secret", None)
+    visible_persona.pop("misconception", None)
     transcript = "\n".join(
         f"{m['agent'].upper()}: {m['content']}" for m in _trim_messages(state["messages"], 12)
     )
@@ -679,7 +963,7 @@ PROGRAM DATA:
 {json.dumps(state['program'])}
 
 STUDENT PERSONA:
-{json.dumps(state['persona'])}
+{json.dumps(visible_persona)}
 
 PRIOR TRANSCRIPT:
 {transcript}
@@ -712,18 +996,24 @@ def _build_student_prompt(state: NegotiationState) -> str:
     transcript = "\n".join(
         f"{m['agent'].upper()}: {m['content']}" for m in _trim_messages(state["messages"], 12)
     )
+    inner_state = state.get("student_inner_state", {})
+    phrases = ", ".join(state["persona"].get("common_phrases", []))
     return f"""
 ROLE: Prospective Student.
 
 PERSONA:
 {json.dumps(state['persona'])}
 
-CONSTRAINTS:
-- Willingness to invest score (0-100): {state['persona']['willingness_to_invest_score']}
-- Affordability concern level (0-100): {state['persona']['affordability_concern_level']}
-- Walk-away likelihood: {state['persona']['walk_away_likelihood']}
-- Emotional tone baseline: {state['persona']['emotional_tone']}
-- Expected ROI months: {state['persona']['expected_roi_months']}
+STUDENT INNER STATE:
+{json.dumps(inner_state)}
+
+MANDATORY BEHAVIOR:
+- You are a flawed human, not a helpful assistant.
+- Think first about fear/trust, then respond.
+- If counsellor gives long technical answer, ignore most of it and ask what matters to you.
+- If anxiety is unresolved, repeat concern in a new wording.
+- Use Indian English naturally (package, fresher, passing out year, backlog, tension, placement).
+- No profanity.
 
 PROGRAM:
 {json.dumps(state['program'])}
@@ -734,7 +1024,17 @@ CURRENT OFFER FROM COUNSELLOR:
 CONTEXT:
 {transcript}
 
+YOUR PERSONAL ANCHORS:
+- Archetype: {state['persona'].get('archetype_id')}
+- Trigger event: {state['persona'].get('trigger_event')}
+- Hidden secret (do not reveal early): {state['persona'].get('hidden_secret')}
+- Misconception: {state['persona'].get('misconception')}
+- Communication style: {state['persona'].get('communication_style')}
+- Common phrases to blend naturally: {phrases}
+
 Output exactly:
+INTERNAL_THOUGHT: <private and unfiltered reaction>
+UPDATED_STATE: <single-line JSON with trust_level, financial_anxiety, skepticism, confusion_level as 0-100 integers>
 MESSAGE: <dialogue>
 EMOTIONAL_STATE: calm/frustrated/confused/excited/skeptical
 STRATEGIC_INTENT: <why responding this way>
@@ -751,8 +1051,23 @@ async def _stream_agent_response(
     round_number: int,
     message_id: str,
     demo_mode: bool,
+    student_inner_state: Optional[Dict[str, int]] = None,
 ) -> Dict[str, Any]:
     full_text = ""
+    stream_chunk_count = 0
+    stream_nonempty_chunk_count = 0
+    _write_debug_trace(
+        "turn_start",
+        {
+            "agent": agent,
+            "round": round_number,
+            "message_id": message_id,
+            "model": model_name,
+            "prompt_len": len(prompt or ""),
+            "prompt_sha256": _sha256_hex(prompt or ""),
+            "prompt_head": _truncate_trace_text(prompt, 180),
+        },
+    )
     try:
         config = types.GenerateContentConfig(
             temperature=0.85,
@@ -765,9 +1080,11 @@ async def _stream_agent_response(
             config=config,
         )
         for chunk in response_stream:
-            text = getattr(chunk, "text", None)
+            stream_chunk_count += 1
+            text = _extract_chunk_text(chunk)
             if not text:
                 continue
+            stream_nonempty_chunk_count += 1
             full_text += text
             await _ws_send_json(
                 websocket,
@@ -786,13 +1103,127 @@ async def _stream_agent_response(
             logger.info("Client disconnected while streaming %s", agent)
             raise ClientStreamClosed() from exc
         logger.exception("Streaming failed for %s", agent)
+        _write_debug_trace(
+            "stream_exception",
+            {
+                "agent": agent,
+                "round": round_number,
+                "message_id": message_id,
+                "error_type": type(exc).__name__,
+                "error": _truncate_trace_text(exc),
+                "chunk_count": stream_chunk_count,
+                "nonempty_chunk_count": stream_nonempty_chunk_count,
+                "buffer_chars": len(full_text),
+            },
+        )
         try:
             await _ws_send_json(websocket, {"type": "error", "data": {"message": f"{agent} streaming failed"}})
         except ClientStreamClosed:
             logger.info("Skipped error send because websocket already closed")
         raise
 
+    _write_debug_trace(
+        "stream_complete",
+        {
+            "agent": agent,
+            "round": round_number,
+            "message_id": message_id,
+            "chunk_count": stream_chunk_count,
+            "nonempty_chunk_count": stream_nonempty_chunk_count,
+            "buffer_chars": len(full_text),
+            "buffer_head": _truncate_trace_text(full_text, 220),
+        },
+    )
+
+    if not full_text.strip():
+        logger.warning("Empty stream text for %s; retrying once with non-stream generate_content.", agent)
+        _write_debug_trace(
+            "nonstream_retry_start",
+            {
+                "agent": agent,
+                "round": round_number,
+                "message_id": message_id,
+            },
+        )
+        retry_response = client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config=config,
+        )
+        full_text = _extract_response_text_from_non_stream(retry_response)
+        retry_finish_reasons = _collect_candidate_finish_reasons(retry_response)
+        _write_debug_trace(
+            "nonstream_retry_complete",
+            {
+                "agent": agent,
+                "round": round_number,
+                "message_id": message_id,
+                "retry_chars": len(full_text),
+                "finish_reasons": retry_finish_reasons,
+                "retry_head": _truncate_trace_text(full_text, 220),
+            },
+        )
+        if not full_text.strip():
+            finish_reasons = retry_finish_reasons
+            reason_note = f" finish_reasons={finish_reasons}" if finish_reasons else ""
+            raise RuntimeError(f"{agent} returned empty response from model.{reason_note}")
+
     fields = _extract_response_fields(full_text)
+    _write_debug_trace(
+        "parse_result",
+        {
+            "agent": agent,
+            "round": round_number,
+            "message_id": message_id,
+            "message_chars": len(fields.get("message", "")),
+            "intent_chars": len(fields.get("intent", "")),
+            "thought_chars": len(fields.get("internal_thought", "")),
+            "has_updated_state": bool(fields.get("updated_state")),
+            "emotional_state": fields.get("emotional_state"),
+        },
+    )
+    if not fields.get("message", "").strip():
+        unlabeled = _extract_unlabeled_message(full_text)
+        if unlabeled.strip():
+            fields["message"] = unlabeled.strip()
+        else:
+            _write_debug_trace(
+                "parse_error",
+                {
+                    "agent": agent,
+                    "round": round_number,
+                    "message_id": message_id,
+                    "reason": "no_parseable_message",
+                    "raw_head": _truncate_trace_text(full_text, 260),
+                },
+            )
+            raise RuntimeError(
+                f"{agent} response had no parseable MESSAGE block. Raw head={full_text[:180]!r}"
+            )
+    if agent == "student":
+        # Hard stop: never allow a student turn with control labels only or blank spoken text.
+        control_only = re.fullmatch(
+            r"(?is)\s*(?:INTERNAL_THOUGHT|UPDATED_STATE|EMOTIONAL_STATE|STRATEGIC_INTENT|TECHNIQUES_USED|CONFIDENCE_SCORE)\s*:.*",
+            fields["message"].strip(),
+        )
+        if not fields["message"].strip() or control_only:
+            _write_debug_trace(
+                "student_spoken_missing",
+                {
+                    "agent": agent,
+                    "round": round_number,
+                    "message_id": message_id,
+                    "message": _truncate_trace_text(fields.get("message", ""), 180),
+                    "raw_head": _truncate_trace_text(full_text, 260),
+                },
+            )
+            raise RuntimeError(
+                f"student response missing spoken learner message. Raw head={full_text[:220]!r}"
+            )
+    merged_state = dict(student_inner_state or {})
+    if agent == "student":
+        merged_state = _merge_student_inner_state(merged_state or {}, fields.get("updated_state", {}))
+
     msg = {
         "id": message_id,
         "round": round_number,
@@ -802,8 +1233,23 @@ async def _stream_agent_response(
         "strategic_intent": fields["intent"],
         "confidence_score": fields["confidence_score"],
         "emotional_state": fields["emotional_state"],
+        "internal_thought": fields.get("internal_thought", ""),
+        "updated_state": merged_state,
         "timestamp": datetime.now().isoformat(),
     }
+    if agent == "student" and fields.get("internal_thought"):
+        await _ws_send_json(
+            websocket,
+            {
+                "type": "student_thought",
+                "data": {
+                    "round": round_number,
+                    "message_id": message_id,
+                    "thought": fields["internal_thought"],
+                    "updated_state": merged_state,
+                },
+            },
+        )
     await _ws_send_json(websocket, {"type": "intent_update", "data": {"agent": agent, "intent": fields["intent"]}})
     await _ws_send_json(websocket, {"type": "message_complete", "data": msg})
     return msg
@@ -865,6 +1311,12 @@ def _update_metrics(state: NegotiationState, counsellor_msg: Dict[str, Any], stu
         if token in objections_text.lower()
     )
     metrics["objection_intensity"] = min(100, max(0, metrics["objection_intensity"] + (objection_hits - 2) * 2))
+    inner = state.get("student_inner_state", {})
+    metrics["objection_intensity"] = min(
+        100,
+        int((metrics["objection_intensity"] * 0.7) + (inner.get("skepticism", 50) * 0.2) + (inner.get("confusion_level", 40) * 0.1)),
+    )
+    metrics["trust_index"] = min(100, max(0, int((metrics["trust_index"] * 0.75) + (inner.get("trust_level", 50) * 0.25))))
     retry_modifier = int(metrics.get("retry_modifier", 0))
     trust_score = min(100, metrics["trust_index"] + (retry_modifier // 2))
     willingness = min(100, int(state["persona"].get("willingness_to_invest_score", 50)) + retry_modifier)
@@ -1040,6 +1492,7 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
             "round": 1,
             "max_rounds": DEFAULT_NEGOTIATION_MAX_ROUNDS,
             "messages": [],
+            "history_for_reporting": [],
             "counsellor_position": {
                 "target_offer": financials["counsellor_offer"],
                 "current_offer": financials["counsellor_offer"],
@@ -1049,6 +1502,12 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
             "student_position": {
                 "budget": financials["student_budget"],
                 "current_offer": financials["student_opening"],
+            },
+            "student_inner_state": {
+                "trust_level": _clamp_score(55 - (persona.get("skepticism", 50) // 3), 45),
+                "financial_anxiety": _clamp_score(persona.get("financial_anxiety", persona.get("affordability_concern_level", 50))),
+                "skepticism": _clamp_score(persona.get("skepticism", 50)),
+                "confusion_level": _clamp_score(persona.get("confusion_level", 40)),
             },
             "program": program,
             "persona": persona,
@@ -1075,6 +1534,7 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
                 "data": {
                     "program": state["program"],
                     "persona": state["persona"],
+                    "student_inner_state": state["student_inner_state"],
                     "retry_context": state["retry_context"],
                     "initial_offers": {
                         "counsellor_offer": state["counsellor_position"]["current_offer"],
@@ -1100,6 +1560,7 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
                 config.demo_mode,
             )
             state["messages"].append(counsellor_msg)
+            state["history_for_reporting"].append(counsellor_msg)
 
             student_id = str(uuid.uuid4())
             student_msg = await _stream_agent_response(
@@ -1111,10 +1572,19 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
                 state["round"],
                 student_id,
                 config.demo_mode,
+                student_inner_state=state["student_inner_state"],
             )
-            state["messages"].append(student_msg)
+            state["student_inner_state"] = _merge_student_inner_state(
+                state["student_inner_state"],
+                student_msg.get("updated_state", {}),
+            )
+            spoken_student_msg = dict(student_msg)
+            spoken_student_msg["internal_thought"] = ""
+            spoken_student_msg["updated_state"] = {}
+            state["messages"].append(spoken_student_msg)
+            state["history_for_reporting"].append(student_msg)
 
-            _update_metrics(state, counsellor_msg, student_msg)
+            _update_metrics(state, counsellor_msg, spoken_student_msg)
             state["negotiation_metrics"]["round"] = state["round"]
             state["negotiation_metrics"]["max_rounds"] = state["max_rounds"]
 
@@ -1128,6 +1598,7 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
                         "deal_status": state["deal_status"],
                         "counsellor_offer": state["counsellor_position"]["current_offer"],
                         "student_offer": state["student_position"]["current_offer"],
+                        "student_inner_state": state["student_inner_state"],
                     },
                 },
             )
@@ -1158,9 +1629,11 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
         )
         SESSION_STORE[config.session_id]["last_run"] = {
             "transcript": state["messages"],
+            "history_for_reporting": state["history_for_reporting"],
             "analysis": analysis,
             "deal_status": state["deal_status"],
         }
+        _emit_conversation_traceability(config.session_id, state, analysis)
         logger.info("Session %s finished with %s", config.session_id, state["deal_status"])
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected")
@@ -1168,6 +1641,13 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
         logger.info("Negotiation stopped because client disconnected")
     except Exception as exc:
         logger.exception("Negotiation failed")
+        _write_debug_trace(
+            "negotiate_exception",
+            {
+                "error_type": type(exc).__name__,
+                "error": _truncate_trace_text(exc),
+            },
+        )
         try:
             await _ws_send_json(websocket, {"type": "error", "data": {"message": str(exc)}})
         except ClientStreamClosed:
@@ -1180,6 +1660,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     session = SESSION_STORE.get(payload.session_id, {})
     program = session.get("program", {})
     persona = session.get("persona", {})
+    session_last_run = session.get("last_run", {})
 
     buf = BytesIO()
     doc = SimpleDocTemplate(
@@ -1242,6 +1723,15 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         fontSize=8.8,
         leading=12,
         textColor=colors.HexColor("#4B6087"),
+    )
+    thought_style = ParagraphStyle(
+        "ThoughtStyle",
+        parent=styles["BodyText"],
+        fontSize=8.6,
+        leading=12,
+        textColor=colors.HexColor("#6A7386"),
+        fontName="Helvetica-Oblique",
+        leftIndent=10,
     )
 
     def card_table(rows: List[List[str]], col_widths: Optional[List[int]] = None) -> Table:
@@ -1379,11 +1869,15 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     story.append(Spacer(1, 10))
 
     story.append(Paragraph("Transcript", section_style))
-    for msg in payload.transcript:
+    transcript_for_report = session_last_run.get("history_for_reporting") or payload.transcript
+    for msg in transcript_for_report:
         agent = str(msg.get("agent", "")).upper() or "UNKNOWN"
         rnd = msg.get("round", "-")
         content = str(msg.get("content", "")).replace("\n", "<br/>")
         story.append(Paragraph(f"Round {rnd} - {agent}", meta_style))
+        thought = str(msg.get("internal_thought", "")).strip()
+        if thought and str(msg.get("agent", "")).lower() == "student":
+            story.append(Paragraph(f"Psychological Analysis: {thought}", thought_style))
         story.append(Paragraph(content, body_style))
         story.append(Spacer(1, 6))
 
