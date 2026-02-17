@@ -205,14 +205,19 @@ function App() {
   const silencePromptTimerRef = useRef(null);
   const processingLabelTimerRef = useRef(null);
   const liveTranscriptRef = useRef("");
+  const committedTranscriptRef = useRef("");
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const waveformRafRef = useRef(null);
   const isTtsSpeakingRef = useRef(false);
   const utteranceRef = useRef(null);
   const selectedVoiceRef = useRef(null);
+  const selectedVoiceNameRef = useRef("");
   const ttsUnlockTimerRef = useRef(null);
   const ttsWatchdogRef = useRef(null);
+  const processingFailSafeTimerRef = useRef(null);
+  const isStartingRecognitionRef = useRef(false);
+  const visibilityPausedRef = useRef(false);
   const stageRef = useRef("idle");
   const modeRef = useRef("ai_vs_ai");
   const micStateRef = useRef("inactive");
@@ -277,6 +282,13 @@ function App() {
     }
   };
 
+  const clearProcessingFailSafe = () => {
+    if (processingFailSafeTimerRef.current) {
+      clearTimeout(processingFailSafeTimerRef.current);
+      processingFailSafeTimerRef.current = null;
+    }
+  };
+
   const hardStopAudioAndMic = useCallback(() => {
     try {
       stopRecognition();
@@ -292,7 +304,10 @@ function App() {
     }
     clearTtsTimers();
     clearProcessingTicker();
+    clearProcessingFailSafe();
     isTtsSpeakingRef.current = false;
+    isStartingRecognitionRef.current = false;
+    visibilityPausedRef.current = false;
     utteranceRef.current = null;
     window.currentUtterance = null;
     setMicState("inactive");
@@ -329,6 +344,7 @@ function App() {
       }
     }
     recognitionRef.current = null;
+    isStartingRecognitionRef.current = false;
     stopWaveform();
     clearMicTimers();
   };
@@ -347,16 +363,29 @@ function App() {
       const matched = voices.find((voice) => String(voice.name || "").toLowerCase().includes(token));
       if (matched) {
         selectedVoiceRef.current = matched;
+        selectedVoiceNameRef.current = `${matched.name} (${matched.lang})`;
         return matched;
+      }
+    }
+    if (inferredGender === "male") {
+      const maleLike = voices.find((voice) => /male|david|mark|daniel|george/i.test(String(voice.name || "")));
+      if (maleLike) {
+        selectedVoiceRef.current = maleLike;
+        selectedVoiceNameRef.current = `${maleLike.name} (${maleLike.lang})`;
+        return maleLike;
       }
     }
     const englishIndian = voices.find((voice) => /^en-in/i.test(String(voice.lang || "")));
     if (englishIndian) {
       selectedVoiceRef.current = englishIndian;
+      selectedVoiceNameRef.current = `${englishIndian.name} (${englishIndian.lang})`;
       return englishIndian;
     }
     const english = voices.find((voice) => /^en/i.test(String(voice.lang || "")));
     selectedVoiceRef.current = english || voices[0];
+    selectedVoiceNameRef.current = selectedVoiceRef.current
+      ? `${selectedVoiceRef.current.name} (${selectedVoiceRef.current.lang})`
+      : "";
     return selectedVoiceRef.current;
   }, [inferredGender, voiceProfileMapping]);
 
@@ -614,6 +643,7 @@ function App() {
     setMicState("inactive");
     setLiveTranscript("");
     liveTranscriptRef.current = "";
+    committedTranscriptRef.current = "";
     setHumanInputText("");
     setProcessingLabelIndex(0);
     setWaveformLevel(0);
@@ -634,10 +664,35 @@ function App() {
     liveTranscriptRef.current = liveTranscript;
   }, [liveTranscript]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const shutdown = () => hardStopAudioAndMic();
     const onVisibility = () => {
-      if (document.visibilityState === "hidden") shutdown();
+      if (document.visibilityState === "hidden") {
+        if (modeRef.current === "human_vs_ai" && stageRef.current === "negotiating") {
+          visibilityPausedRef.current = true;
+          stopRecognition();
+          if (micStateRef.current !== "locked" && micStateRef.current !== "processing") {
+            setMicState("inactive");
+          }
+          return;
+        }
+        shutdown();
+        return;
+      }
+      if (
+        document.visibilityState === "visible"
+        && visibilityPausedRef.current
+        && modeRef.current === "human_vs_ai"
+        && stageRef.current === "negotiating"
+        && micStateRef.current !== "locked"
+        && micStateRef.current !== "processing"
+        && !isTtsSpeakingRef.current
+        && !window.speechSynthesis?.speaking
+      ) {
+        visibilityPausedRef.current = false;
+        setMicState("inactive");
+      }
     };
     window.addEventListener("beforeunload", shutdown);
     window.addEventListener("pagehide", shutdown);
@@ -647,6 +702,7 @@ function App() {
       window.removeEventListener("pagehide", shutdown);
       document.removeEventListener("visibilitychange", onVisibility);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hardStopAudioAndMic]);
 
   useEffect(() => {
@@ -825,8 +881,17 @@ function App() {
     setMicState("processing");
     startProcessingTicker();
     socket.send(JSON.stringify({ type: "human_input", text }));
+    clearProcessingFailSafe();
+    processingFailSafeTimerRef.current = setTimeout(() => {
+      if (micStateRef.current === "processing" && modeRef.current === "human_vs_ai" && stageRef.current === "negotiating") {
+        setMicState("inactive");
+        clearProcessingTicker();
+        pushUiToast("Student response took too long. Mic resumed for retry.", "strategic", 3200);
+      }
+    }, 20000);
     setLiveTranscript("");
     liveTranscriptRef.current = "";
+    committedTranscriptRef.current = "";
     setHumanInputText("");
     stopRecognition();
   };
@@ -855,6 +920,14 @@ function App() {
     const utterance = new SpeechSynthesisUtterance(String(text).trim());
     const voice = selectSpeechVoice();
     if (voice) utterance.voice = voice;
+    if (selectedVoiceNameRef.current) {
+      // eslint-disable-next-line no-console
+      console.info("TTS voice selected", {
+        persona: persona?.name || "student",
+        inferredGender,
+        voice: selectedVoiceNameRef.current,
+      });
+    }
     const emotion = String(emotionalState || "calm").toLowerCase();
     if (emotion === "frustrated") {
       utterance.rate = 1.1;
@@ -914,11 +987,13 @@ function App() {
 
   const startListening = async () => {
     if (!isHumanMode || stage !== "negotiating") return;
-    if (isTtsSpeakingRef.current || window.speechSynthesis?.speaking || micState === "locked" || micState === "processing") return;
+    if (isStartingRecognitionRef.current) return;
+    if (isTtsSpeakingRef.current || window.speechSynthesis?.speaking || micStateRef.current === "locked" || micStateRef.current === "processing") return;
     if (!speechRecognitionCtor || micPermissionStatus === "denied") {
       setMicState("inactive");
       return;
     }
+    isStartingRecognitionRef.current = true;
     stopRecognition();
     let stream;
     try {
@@ -959,20 +1034,24 @@ function App() {
       setMicPermissionStatus("granted");
       setMicState("listening");
       armSilencePromptTimer();
+      committedTranscriptRef.current = String(liveTranscriptRef.current || "").trim();
     };
     recognition.onresult = (event) => {
       let interim = "";
-      let finalText = "";
+      let finalTextDelta = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
         const result = event.results[i];
         const transcript = result?.[0]?.transcript || "";
         if (result.isFinal) {
-          finalText += `${transcript} `;
+          finalTextDelta += `${transcript} `;
         } else {
           interim += transcript;
         }
       }
-      const merged = `${finalText} ${interim}`.trim();
+      if (finalTextDelta.trim()) {
+        committedTranscriptRef.current = `${committedTranscriptRef.current} ${finalTextDelta}`.trim();
+      }
+      const merged = `${committedTranscriptRef.current} ${interim}`.trim();
       setLiveTranscript(merged);
       liveTranscriptRef.current = merged;
       setHumanInputText(merged);
@@ -1001,7 +1080,9 @@ function App() {
     recognitionRef.current = recognition;
     try {
       recognition.start();
+      isStartingRecognitionRef.current = false;
     } catch (error) {
+      isStartingRecognitionRef.current = false;
       setMicState("inactive");
       stopRecognition();
     }
@@ -1043,6 +1124,9 @@ function App() {
       processingLabelTimerRef.current = null;
       setProcessingLabelIndex(0);
     }
+    if (micState !== "processing") {
+      clearProcessingFailSafe();
+    }
   }, [micState]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1054,6 +1138,20 @@ function App() {
     return undefined;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHumanMode, stage, micState]);
+
+  useEffect(() => {
+    if (!isHumanMode || stage !== "negotiating") return undefined;
+    const watchdog = setInterval(() => {
+      if (liveModeNeedsTextFallback) return;
+      if (document.visibilityState !== "visible") return;
+      if (isTtsSpeakingRef.current || window.speechSynthesis?.speaking) return;
+      if (micStateRef.current === "processing" || micStateRef.current === "locked") return;
+      if (!recognitionRef.current && !isStartingRecognitionRef.current) {
+        setMicState("inactive");
+      }
+    }, 1200);
+    return () => clearInterval(watchdog);
+  }, [isHumanMode, stage, liveModeNeedsTextFallback]);
 
   const startNegotiation = async (requestedMode = negotiationMode) => {
     setNegotiationMode(requestedMode);
@@ -1173,7 +1271,11 @@ function App() {
           delete next[msg.id];
           pendingThoughtsRef.current = next;
         }
+        if (mode === "human_vs_ai" && normalized.agent === "counsellor") {
+          clearProcessingFailSafe();
+        }
         if (mode === "human_vs_ai" && normalized.agent === "student") {
+          clearProcessingFailSafe();
           setMicState("locked");
           speakStudentTurn(normalized.content, normalized.emotional_state);
         }
@@ -1201,11 +1303,16 @@ function App() {
         setShowReportDashboard(false);
         pushUiToast(`Conversation Completed\nDuration (mins) ${durationHms}`, "positive", 5200);
       } else if (payload.type === "warning") {
+        clearProcessingFailSafe();
         pushUiToast(payload.data?.message || "Warning from server", "strategic", 3400);
       } else if (payload.type === "error") {
+        clearProcessingFailSafe();
         // eslint-disable-next-line no-console
         console.error("Backend negotiation error", payload.data);
         pushUiToast(payload.data?.message || "Unexpected backend error");
+        if (mode === "human_vs_ai") {
+          setMicState("inactive");
+        }
       }
     };
 
@@ -1220,6 +1327,7 @@ function App() {
       // eslint-disable-next-line no-console
       console.warn("WebSocket closed", { code: event.code, reason: event.reason, wasClean: event.wasClean });
       setDrafts({});
+      clearProcessingFailSafe();
       setMicState("inactive");
       stopRecognition();
       pushUiToast("Connection closed.", "strategic", 1800);
@@ -1496,6 +1604,20 @@ function App() {
                     disabled={micState === "locked"}
                   />
                   <div className="liveMicActions">
+                    {!liveModeNeedsTextFallback && (
+                      <button
+                        type="button"
+                        className="ghostBtn"
+                        onClick={() => {
+                          if (micStateRef.current === "locked" || micStateRef.current === "processing") return;
+                          setMicState("inactive");
+                          startListening();
+                        }}
+                        disabled={micState === "locked" || micState === "processing"}
+                      >
+                        Resume Mic
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="downloadBtn"

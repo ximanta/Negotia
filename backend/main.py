@@ -855,6 +855,38 @@ def _compact_text(value: Any, limit: int) -> str:
     return f"{text[:limit].rstrip()}..."
 
 
+def _looks_like_student_role_drift(message: str) -> bool:
+    text = str(message or "").strip()
+    if not text:
+        return False
+    lowered = text.lower()
+    hard_patterns = (
+        r"\bas your counsellor\b",
+        r"\bi need to explain\b",
+        r"\blet me explain\b",
+        r"\bi can help you\b",
+        r"\bi will help you\b",
+        r"\bour (program|course|curriculum|placement team)\b",
+        r"\bwe (offer|provide|have|guarantee)\b",
+    )
+    for pattern in hard_patterns:
+        if re.search(pattern, lowered):
+            return True
+    advisory_markers = (
+        "you should",
+        "i recommend",
+        "i suggest",
+        "please enroll",
+        "you can enroll",
+        "we can assist you with placement",
+    )
+    has_advisory = any(marker in lowered for marker in advisory_markers)
+    has_question = "?" in text
+    if has_advisory and not has_question:
+        return True
+    return False
+
+
 def _student_program_snapshot(program: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "program_name": program.get("program_name", ""),
@@ -877,7 +909,6 @@ def _build_retry_context_prompt(state: NegotiationState) -> str:
     return (
         "RETRY_CONTEXT:\n"
         f"PROGRAM_SNAPSHOT:\n{json.dumps(_student_program_snapshot(state.get('program', {})), ensure_ascii=False)}\n"
-        f"CURRENT_OFFER_FROM_COUNSELLOR:\n{state.get('counsellor_position', {}).get('current_offer', '')}\n"
         f"TRANSCRIPT_CONTEXT:\n{transcript}"
     )
 
@@ -1365,9 +1396,6 @@ CURRENT STATE:
 PROGRAM:
 {json.dumps(program_snapshot)}
 
-CURRENT OFFER FROM COUNSELLOR:
-{state['counsellor_position']['current_offer']}
-
 TRANSCRIPT SO FAR:
 {transcript}
 
@@ -1399,8 +1427,11 @@ def _retry_with_structured_json(
     model_name: str,
     agent: str,
     retry_context_prompt: str,
+    student_persona: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     if agent == "student":
+        persona_name = str((student_persona or {}).get("name", "the learner")).strip()
+        persona_archetype = str((student_persona or {}).get("archetype_label", "Prospective Learner")).strip()
         fallback = {
             "message": "I am still processing this. Please clarify one key point for me.",
             "internal_thought": "No internal thought captured",
@@ -1415,6 +1446,11 @@ You are recovering from a failed stream for a learner turn.
 Return a complete structured response in one function call.
 Keep MESSAGE under 180 words.
 Use only this context and do not invent details outside it.
+ROLE LOCK (MANDATORY):
+- You are the prospective learner named {persona_name} ({persona_archetype}), not the counsellor.
+- Never explain the programme as if you represent the institute.
+- Ask, challenge, or clarify as a learner. Do not sell.
+- End MESSAGE with a complete sentence, ideally with at least one question if concerns remain.
 {retry_context_prompt}
 """
         parsed = _call_function_json(
@@ -1438,7 +1474,58 @@ Use only this context and do not invent details outside it.
             },
             fallback=fallback,
         )
-        return _to_plain_json(parsed)
+        payload = _to_plain_json(parsed)
+        message = str(payload.get("message", "")).strip()
+        if _looks_like_student_role_drift(message):
+            logger.warning("Student retry output drifted into counsellor role; running guarded rewrite.")
+            rewrite_prompt = f"""
+Rewrite the learner MESSAGE below so it is strictly from the learner perspective.
+Do not provide counsellor advice and do not represent the institute.
+Keep under 180 words and end with a complete sentence.
+
+LEARNER PROFILE:
+- Name: {persona_name}
+- Archetype: {persona_archetype}
+
+INVALID MESSAGE:
+{message}
+
+{retry_context_prompt}
+"""
+            payload = _to_plain_json(
+                _call_function_json(
+                    client=client,
+                    model_name=model_name,
+                    prompt=rewrite_prompt,
+                    function_name="rewrite_retry_student_response",
+                    function_description="Rewrite learner response so it remains in learner role.",
+                    parameters_schema={
+                        "type": "object",
+                        "properties": {
+                            "message": {"type": "string"},
+                            "internal_thought": {"type": "string"},
+                            "updated_stats": {"type": "object"},
+                            "emotional_state": {"type": "string"},
+                            "intent": {"type": "string"},
+                            "confidence_score": {"type": "number"},
+                            "techniques": {"type": "array", "items": {"type": "string"}},
+                        },
+                        "required": ["message"],
+                    },
+                    fallback=fallback,
+                )
+            )
+            repaired_message = str(payload.get("message", "")).strip()
+            if _looks_like_student_role_drift(repaired_message):
+                logger.warning("Student retry rewrite still drifted; applying safe learner fallback message.")
+                payload["message"] = fallback["message"]
+                payload["internal_thought"] = fallback["internal_thought"]
+                payload["updated_stats"] = {}
+                payload["emotional_state"] = fallback["emotional_state"]
+                payload["intent"] = fallback["intent"]
+                payload["confidence_score"] = fallback["confidence_score"]
+                payload["techniques"] = []
+        return payload
 
     fallback = {
         "message": "Could you share your top concern so I can address it directly?",
@@ -1488,6 +1575,7 @@ async def _stream_agent_response(
     retry_context_prompt: str,
     mode: str,
     student_inner_state: Optional[Dict[str, int]] = None,
+    student_persona: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     full_text = ""
     stream_chunk_count = 0
@@ -1676,6 +1764,7 @@ async def _stream_agent_response(
             model_name=model_name,
             agent=agent,
             retry_context_prompt=retry_context_prompt,
+            student_persona=student_persona,
         )
         retry_message = str(retry_payload.get("message", "")).strip()
         if not retry_message:
@@ -2202,6 +2291,7 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
                 _build_retry_context_prompt(state),
                 mode=mode,
                 student_inner_state=state["student_inner_state"],
+                student_persona=state["persona"],
             )
             if str(student_msg.get("generation_mode", "stream")) == "stream":
                 student_generation_failures = 0

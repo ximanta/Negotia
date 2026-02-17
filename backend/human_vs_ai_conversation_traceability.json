@@ -1,40 +1,37 @@
 {
-  "generated_at": "2026-02-17T17:57:51.064335",
-  "session_id": "98aa27db-9f8a-470c-ad03-a9152eec8950",
+  "generated_at": "2026-02-17T20:41:07.104592",
+  "session_id": "2753cd1c-6251-4dbf-8ccc-d2358c470da1",
   "deal_status": "failed",
   "round": 6,
   "max_rounds": 5,
   "persona": {
+    "skepticism": 5,
     "gender": "male",
-    "trigger_event": "A recent appraisal where he was told his skills needed an upgrade, specifically in AI, to qualify for a promotion, coupled with seeing his peers get laid off or struggling to find new jobs due to a lack of advanced skills. He also saw a junior colleague get a better offer just because they had some AI project experience.",
-    "archetype_label": "Skeptical Shopper",
-    "backstory": "Rahul has been working as a Software Developer for 4 years in a mid-sized IT company in Bangalore. He's seen a lot of hype around AI but also many half-baked courses and promises. He feels his career is stagnating and fears being left behind but is wary of spending a significant amount on another program that might not deliver. He's been burned by online courses before that promised a lot but delivered little practical value. He constantly researches and compares programs.",
-    "ego_level": 7,
-    "confusion_level": 6,
-    "archetype_id": "skeptical_shopper",
-    "misconception": "He believes that most AI programs are just theoretical and don't teach you how to actually build and deploy real-world AI systems, or that they are just a repackaging of older concepts with new buzzwords. He also thinks many programs are designed to just extract money without providing genuine placement support.",
-    "language_style": "UK English",
-    "name": "Rahul Sharma",
-    "age": 28,
-    "current_role": "Software Developer",
+    "ego_level": 3,
+    "archetype_id": "desperate_switcher",
     "common_vocabulary": [
-      "bhaiya",
-      "scene kya hai",
-      "hidden charges",
-      "package milega?",
-      "ROI",
-      "genuine",
-      "fakel",
-      "timepass"
+      "Sir/Ma'am",
+      "Batch",
+      "Passing out",
+      "Gap",
+      "Scope"
     ],
-    "skepticism": 10,
-    "hidden_secret": "He secretly fears that he's not smart enough for AI, despite his programming background, and that all these new technologies are just too complex for him to grasp quickly, making him insecure about his long-term career prospects. He's also saving for a down payment on a flat, so every penny spent on education feels like a huge risk.",
+    "backstory": "Rohan completed his B.Tech in Computer Science from a regional engineering college. He started his career with a modest package in a Tier-2 city. For the past few years, he feels stuck in a repetitive job with limited growth. His peers from college are now getting into cutting-edge technologies like AI and earning significantly more, which makes him anxious about his future. He feels immense pressure from his family to secure a better, more stable job, especially as he approaches the typical age for marriage.",
+    "archetype_label": "Desperate Switcher",
+    "hidden_secret": "He secretly fears he is not smart enough to grasp complex AI concepts and that he might fail even if he invests in a new course. He worries about the financial strain of the course fees, especially if it does not lead to a better job.",
+    "age": 28,
     "financial_anxiety": 9,
-    "city_tier": "Tier-1",
-    "persona_type": "skeptical_shopper",
+    "current_role": "Junior Software Engineer",
+    "name": "Rohan Singh",
+    "language_style": "UK English",
+    "misconception": "He believes that once he gets a certificate in Agentic AI, he will be instantly highly employable and can demand a top-tier salary, without fully appreciating the continuous learning and hands-on application required. He thinks the certificate is a \"job guarantee card.\"",
+    "city_tier": "Tier-2",
+    "trigger_event": "His company recently announced a major restructuring and a hiring freeze, with strong rumors of layoffs affecting junior to mid-level employees whose skills are considered \"legacy.\" This has intensified his fear of job loss and made him realize he needs to \"reskill or perish.\"",
+    "confusion_level": 8,
+    "persona_type": "desperate_switcher",
     "background": "Prospective learner evaluating an AI upskilling path.",
     "career_stage": "early",
-    "financial_sensitivity": "high",
+    "financial_sensitivity": "medium",
     "risk_tolerance": "medium",
     "emotional_tone": "skeptical",
     "primary_objections": [
@@ -43,10 +40,10 @@
       "Difficulty for freshers",
       "Time commitment"
     ],
-    "walk_away_likelihood": 0.67,
-    "expected_roi_months": 8,
-    "affordability_concern_level": 80,
-    "willingness_to_invest_score": 55,
+    "walk_away_likelihood": 0.57,
+    "expected_roi_months": 10,
+    "affordability_concern_level": 74,
+    "willingness_to_invest_score": 62,
     "communication_style": "aggressive",
     "common_phrases": [
       "Placement ka scene kya hai?",
@@ -56,17 +53,16 @@
   },
   "program": {
     "program_name": "Building Agentic AI Systems",
-    "program_fee_inr": "1,50,000 + GST. Booking fees: 1,500 + GST. Upfront payment with 5% concession: 1,42,500 (inclusive of concession)."
+    "program_fee_inr": "Program fees: INR 1,50,000 + GST. Booking fees: INR 1,500 + GST. Full upfront payment: INR 1,42,500 (inclusive of 5% concession). EMI option available at INR 24,750 per installment (after booking). Loan facility is also available."
   },
   "student_inner_state": {
     "sentiment": "frustrated",
-    "skepticism_level": 85,
-    "trust_score": 5,
+    "skepticism_level": 50,
+    "trust_score": 25,
     "unresolved_concerns": [
-      "Effort/Time",
       "Job Guarantee",
-      "Price",
-      "Specific Placement Outcomes"
+      "Placement Criteria Clarity",
+      "Price"
     ]
   },
   "negotiation_metrics": {
@@ -74,477 +70,471 @@
     "max_rounds": 5,
     "concession_count_counsellor": 0,
     "concession_count_student": 0,
-    "tone_escalation": 47,
-    "objection_intensity": 42,
-    "trust_index": 12,
-    "close_probability": 40,
+    "tone_escalation": 31,
+    "objection_intensity": 20,
+    "trust_index": 34,
+    "close_probability": 57,
     "sentiment_indicator": "negative",
     "retry_modifier": 0
   },
   "final_offers": {
-    "counsellor": 165000,
-    "student": 123000
+    "counsellor": 166950,
+    "student": 127200
   },
   "analysis": {
-    "winner": "student",
-    "why": "The counsellor consistently failed to provide clear, consistent, and verifiable information regarding program fees and specific placement outcomes for the Agentic AI Systems program. This led to significant student frustration and a stated loss of trust. The counsellor kept providing general statements or inconsistent figures instead of the concrete data requested.",
-    "primary_unresolved_objection": "Inconsistent program fee information and lack of specific, verifiable placement outcomes for the Agentic AI Systems program.",
+    "trust_delta": -10,
     "skill_recommendations": [
-      "Active listening: Pay close attention to the student's specific questions and address them directly.",
-      "Information consistency: Ensure all provided information, especially pricing, is accurate and consistent throughout the conversation.",
-      "Data verification: Be prepared to offer concrete, verifiable data for program-specific claims (e.g., placement outcomes, salary packages, employer lists).",
-      "Objection handling: Proactively address objections with specific solutions or information, rather than general statements.",
-      "Attention to detail: Verify student names and numerical figures carefully."
+      "Improve active listening to understand the student's core concerns.",
+      "Practice providing direct and unambiguous answers, especially for policy and guarantee-related questions.",
+      "Enhance product knowledge to confidently discuss all program details, including eligibility and placement terms.",
+      "Develop effective objection handling techniques to address concerns directly rather than deflecting.",
+      "Cultivate empathy to acknowledge and reassure students about their investment and career aspirations."
     ],
-    "mistakes": [
-      "Inconsistent pricing information (1.5 lakhs, 1.65 lakhs, 10.05 lakhs).",
-      "Failing to provide specific, verifiable placement data for the Agentic AI Systems program, instead giving general market trends or broad percentages.",
-      "Not actively listening to the student's specific requests (e.g., repeatedly asking for 'this specific course' data).",
-      "Misunderstanding the student's name in Round 1.",
-      "Providing a potentially significant typo in the price in Round 5 (\"1005000 + GST\")."
-    ],
-    "negotiation_score": 20,
-    "enrollment_likelihood": 10,
-    "trust_delta": -15,
-    "strengths": [
-      "Counsellor tried to maintain a polite tone initially.",
-      "Counsellor acknowledged some questions, even if not answering them effectively."
-    ],
-    "commitment_signal": "none",
+    "why": "The counsellor repeatedly failed to provide direct and clear answers to the student's core questions regarding placement guarantees, specifically the link between the 70% assessment score and the 95% placement success rate. Vague explanations and a deflective rhetorical question in the final round significantly eroded trust and increased student frustration, leaving key objections unresolved.",
     "pivotal_moments": [
-      "Round 1: Counsellor misidentifies student's name, creating an initial negative impression.",
-      "Round 3: Counsellor gives vague answers ('excellent placement cells,' 'high placement rate') which the student explicitly rejects, requesting concrete details for this specific program. The pricing confusion also begins here.",
-      "Round 4: Student explicitly highlights the \"inconsistent pricing\" and states it \"makes it difficult to trust the information.\"",
-      "Round 5: Student states \"This constant shifting of figures is genuinely undermining my trust in this entire conversation\" and explicitly asks for verifiable data. This is the peak of frustration and distrust."
-    ]
+      "Round 2: Student challenges the 95% placement figure, asking for eligibility conditions.",
+      "Round 3: Counsellor asks student where 70% criteria came from, indicating lack of program knowledge.",
+      "Round 5: Counsellor deflects the 70% policy question with a rhetorical question.",
+      "Round 5: Student directly expresses frustration, stating the question was not answered, solidifying the failure in objection handling."
+    ],
+    "strengths": [
+      "Counsellor initially provided attractive placement rate and salary bracket.",
+      "Counsellor was present and engaged throughout the conversation."
+    ],
+    "winner": "student",
+    "negotiation_score": 30,
+    "mistakes": [
+      "Failed to directly and clearly address the student's core questions about placement guarantees and the 70% score.",
+      "Provided vague and ambiguous explanations.",
+      "Deflected a direct policy question with a rhetorical question in the final round.",
+      "Failed to adequately explain the 'Front Engineer' role.",
+      "Appeared unfamiliar with specific program eligibility details (70% score source)."
+    ],
+    "enrollment_likelihood": 25,
+    "primary_unresolved_objection": "The lack of clarity and guarantee regarding placement assistance for all learners, specifically how the 70% assessment score eligibility impacts the 95% placement success rate and the availability of interview opportunities.",
+    "commitment_signal": "none"
   },
   "transcript": [
     {
-      "id": "f0c302ae-b852-4658-a54d-6b0718bdf9df",
+      "id": "72d0268c-b4e3-4727-a3e6-bc352898bde2",
       "round": 1,
       "agent": "counsellor",
-      "content": "hello Rajesh this is simanta I saw your interested in our building isn't it systems program can you let me know how I can help you",
+      "content": "hello Rohan and Samantha here so can you tell me what you are looking for",
       "techniques": [
-        "Greeting and Introduction",
-        "Acknowledging Client's Interest",
-        "Open Question for Needs Assessment"
+        "introduction",
+        "open-ended questioning"
       ],
-      "strategic_intent": "Initiate conversation and gather information about client's specific needs/interest in the program.",
+      "strategic_intent": "gather initial information",
       "confidence_score": 0,
-      "emotional_state": "helpful and welcoming",
+      "emotional_state": "welcoming",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:53:06.715877",
+      "timestamp": "2026-02-17T20:34:53.252552",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "1617581e-f6d5-4428-8f36-3d76e98b24e0",
+      "id": "0876aec8-0f0f-400d-8910-b7b14e4bcca3",
       "round": 1,
       "agent": "student",
-      "content": "Hello, it's Rahul, not Rajesh. I'm interested in the programme, but I've got a few concerns, particularly regarding the overall cost and what actual placement outcomes one can expect from it. I've seen a lot of programmes make big promises, so I'm keen to understand the practicalities.",
+      "content": "Hello Samantha, thanks for reaching out. Well, I'm currently a Junior Software Engineer, and to be frank, I feel a bit stuck in my career. I'm looking for a programme that can genuinely help me transition into the more advanced AI roles I see my peers getting into. I really want to develop job-ready capabilities in something cutting-edge like Agentic AI. Ultimately, I'm hoping for a strong return on investment and solid placement outcomes, if that's something your programme offers.",
       "techniques": [],
-      "strategic_intent": "To correct the counsellor's error, immediately flag my primary concerns about price and job outcomes, and convey my existing skepticism about programme promises.",
+      "strategic_intent": "To explain my current situation and primary motivation (career progression, job security, ROI) while subtly hinting at my unresolved concerns (placement outcomes, cost).",
       "confidence_score": 60,
-      "emotional_state": "skeptical",
+      "emotional_state": "curious",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:53:09.712395",
+      "timestamp": "2026-02-17T20:34:56.254400",
       "generation_mode": "stream"
     },
     {
-      "id": "6fb36e81-10f6-4bda-abbf-2076808eeddd",
+      "id": "1ef47396-a7e1-4a05-a51a-36731c541d58",
       "round": 2,
       "agent": "counsellor",
-      "content": "okay so this is 300 over program in each An engineering program and isn't it is on high demand in the market money Industries have lots of jobs opening can you tell me anything specific you would like to know",
+      "content": "okay so we have a placement cell and we have a record of over 95% placement of our students does it help s you",
       "techniques": [
-        "Providing Program Information",
-        "Highlighting Market Demand/Employability",
-        "Open Question for Needs Assessment"
+        "providing information",
+        "checking understanding",
+        "building credibility"
       ],
-      "strategic_intent": "Provide information about the program's market demand and employability, and solicit specific questions from the student to address their concerns more directly.",
-      "confidence_score": 85,
-      "emotional_state": "informative and helpful",
+      "strategic_intent": "to address student's concern about placement outcomes and highlight program benefits",
+      "confidence_score": 90,
+      "emotional_state": "reassuring",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:53:54.323327",
+      "timestamp": "2026-02-17T20:35:55.266892",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "2326b137-a321-45bc-beb1-c15a90ef9e5c",
+      "id": "fe1babeb-3361-4220-b961-f1435dd01338",
       "round": 2,
       "agent": "student",
-      "content": "Look, I understand AI is in high demand; that's why I'm looking into it. However, my specific concerns, which you didn't quite address, are the actual programme fee and, more critically, the concrete placement outcomes. I need to know what the return on investment will be, not just general market trends. Can you provide details on those points, please?",
+      "content": "That 95% placement figure sounds really impressive, Samantha. However, I'm trying to understand what that actually entails for a learner like me. The program details mention eligibility criteria like a 70% score and being an India resident, and that support includes up to three interview opportunities within 120 days. Does that 95% success rate apply to *all* enrolled students, or only those who meet the strict eligibility and activity criteria? And what kind of roles and salary packages are typically secured by those 95%? I'm keen to ensure this translates into a strong return on investment for my career transition.",
       "techniques": [],
-      "strategic_intent": "reiterate unresolved concerns and push for specific answers, expressing frustration at the lack of direct response",
+      "strategic_intent": "Clarify placement claims and efficacy",
       "confidence_score": 60,
-      "emotional_state": "frustrated",
+      "emotional_state": "Skeptical but hopeful",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:53:57.504314",
-      "generation_mode": "stream"
+      "timestamp": "2026-02-17T20:36:03.297666",
+      "generation_mode": "structured_retry"
     },
     {
-      "id": "5a88be58-6193-4c0d-832d-f2a0e8bc8004",
+      "id": "89a0f075-6c25-45d9-86b2-8a8096569dac",
       "round": 3,
       "agent": "counsellor",
-      "content": "so are the program is 1.5 lacs + GST and we have an excellent placement cells that will assist you in the placement part we have a high placement rate in across NIT across all over programs and hope I was level to answer your query",
+      "content": "so typically our students are eligible for industry roles like AI engineers from engineer engineers and also Rag Engineer with the salary bracket of you not 10 to 15 lakhs per annum and where did you get the 70% score eligibility criteria",
       "techniques": [
-        "Providing Program Information",
-        "Highlighting Placement Support",
-        "Highlighting Placement Success/Rate",
-        "Checking for Understanding/Satisfaction"
+        "providing information",
+        "asking for clarification"
       ],
-      "strategic_intent": "To directly address the student's specific concerns about program cost and placement outcomes by providing concrete details and reassuring them about support and success, then confirming if their query has been resolved.",
-      "confidence_score": 85,
-      "emotional_state": "informative, reassuring, and helpful",
+      "strategic_intent": "provide details on career outcomes and clarify eligibility criteria",
+      "confidence_score": 80,
+      "emotional_state": "informative and inquiring",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:54:51.813026",
+      "timestamp": "2026-02-17T20:37:25.133450",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "8ca61b44-fafb-49ba-9bee-1ce81fba3ab8",
+      "id": "b2bcfe08-8394-463a-baaf-871e01d6e0eb",
       "round": 3,
       "agent": "student",
-      "content": "Look, with all due respect, \"excellent placement cells\" and a \"high placement rate across NIIT\" isn't the specific information I'm looking for. I need concrete details for *this* programme, for *Agentic AI Systems*. What are the actual placement outcomes for past participants of *this specific course*? What kind of roles did they secure, and what were the average salary packages? That's what I mean by return on investment.\nAlso, you just said the programme is 1.5 lakhs + GST, but earlier you mentioned an offer of 1,65,000. Which one is it? I need clarity on the actual programme fee, and whether that includes GST, as well as clear, verifiable information on placement outcomes, not just general statements.",
+      "content": "Thank you for clarifying the typical roles and salary bracket, Samantha. 10 to 15 lakhs sounds like a very strong return on investment, which is encouraging. Could you perhaps elaborate on what a \"Front Engineer\" entails in this context?\nRegarding the 70% score eligibility, I noted that directly from the programme details you sent over. Specifically, under \"placement support details,\" it states: \"Placement assistance is available for eligible learners (70% score, regular graduation degree, India resident).\" My query was really about whether the impressive 95% placement success rate applies to *all* enrolled students, or only those who meet these specific, strict eligibility and activity criteria, including the 70% score. I just want to ensure I fully understand the *placement outcomes* and what's genuinely guaranteed.",
       "techniques": [],
-      "strategic_intent": "To demand specific, verifiable details regarding placement outcomes and to clarify the conflicting price information, as the counsellor's responses have been vague and unhelpful, increasing my suspicion and frustration.",
+      "strategic_intent": "To reiterate my previous point about eligibility criteria, clarify a vague role title, and get more precise details about the 95% placement success rate in relation to the eligibility conditions, as I am concerned about job guarantee and return on investment.",
       "confidence_score": 60,
-      "emotional_state": "frustrated",
+      "emotional_state": "vigilant",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:54:55.686597",
+      "timestamp": "2026-02-17T20:37:31.546493",
       "generation_mode": "stream"
     },
     {
-      "id": "2fafb7f9-b75e-455b-a378-b836eac3dfe7",
+      "id": "7e776d1b-6c2e-4d45-b724-d1bc884f7d94",
       "round": 4,
       "agent": "counsellor",
-      "content": "okay it is 165000 + GST and SD card to your specific questions this year in the first job right so average salary that we see R AI engineers in companies around 15 to 20 lakh per annum does it helps you",
+      "content": "yeah so already is not strictly but we try to put in place that all over learners scores at the minimum 70% and what is quickly required as a prerequisite you have to be a Indian resident and also have positive graduation from recognize University",
       "techniques": [
-        "Providing Program Information",
-        "Providing Placement Outcome Data",
-        "Checking for Understanding/Satisfaction"
+        "providing information",
+        "clarifying information"
       ],
-      "strategic_intent": "To clarify the program cost, provide specific average salary expectations for AI engineers, and confirm if the student's queries have been adequately addressed.",
-      "confidence_score": 85,
-      "emotional_state": "informative and helpful",
+      "strategic_intent": "clarify eligibility criteria and prerequisites for placement",
+      "confidence_score": 90,
+      "emotional_state": "informative",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:56:09.284525",
+      "timestamp": "2026-02-17T20:39:03.822997",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "54ac5061-01e5-4115-aabd-d7c7d0423c36",
+      "id": "d7d85804-bbd3-49b1-a742-01e33e0c250d",
       "round": 4,
       "agent": "student",
-      "content": "Hold on a moment, this is precisely what I mean about clarity. First, you mentioned the programme fee was 1.5 lakhs + GST, then you quoted me an offer of 1,65,000, and now you're stating it's 165,000 + GST. Which figure is it, precisely? And does that 165,000 include the GST, or is it additional? This inconsistent pricing is quite concerning and makes it difficult to trust the information.\nSecondly, regarding the placement outcomes, I appreciate the general market information, but that's not what I asked for. I specifically requested concrete details for *this Agentic AI Systems programme*. What were the actual placement outcomes for *past participants* of *this specific course*? What specific roles did they secure, and what were their average salary packages? I need verifiable information to understand the true return on investment, not just broad industry averages.",
+      "content": "Right, I understand about being an Indian resident and having a recognised degree. But, Samantha, my core concern here is still about the 70% score and how it relates to the 95% placement success rate. You mentioned it's \"not strictly\" required, but that you \"try to put in place\" that learners achieve it. Could you please clarify this for me directly? If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need to understand what's genuinely guaranteed regarding *placement outcomes* for every learner, not just those who hit specific internal targets.\nAnd, if you wouldn't mind, could you please elaborate on what a \"Front Engineer\" role typically involves? I'm trying to get a clear picture of the specific career progression this programme offers.",
       "techniques": [],
-      "strategic_intent": "To demand clarity on pricing inconsistencies and insist on specific, verifiable placement data for the programme, not general market trends, as my trust and value for money concerns are not being met.",
+      "strategic_intent": "seeking clarification on placement eligibility and role definition, reiterating unresolved concerns due to vague answers",
       "confidence_score": 60,
       "emotional_state": "frustrated",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:56:15.099529",
+      "timestamp": "2026-02-17T20:39:08.881228",
       "generation_mode": "stream"
     },
     {
-      "id": "3f69708a-3f44-4bfb-ba31-45cb4cc3f178",
+      "id": "be0fa545-e90a-472f-b9b3-88f644b90e20",
       "round": 5,
       "agent": "counsellor",
-      "content": "so it is 1005000 + GST so past students have you know placement rate of more than 95% for this program and average salary is around you know 1500000",
+      "content": "engineer typically refers to front and engineer and regarding the 70% let me ask you back on a question right so if you don't score 70% about placement is in team will definitely you know put you in three interview bracket but if you have not put in effort introduce program and score very low do you think you will be able to crackers interview",
       "techniques": [
-        "Providing Program Information",
-        "Highlighting Placement Success/Rate",
-        "Providing Placement Outcome Data"
+        "providing information",
+        "clarifying information",
+        "setting expectations",
+        "asking rhetorical questions"
       ],
-      "strategic_intent": "To directly address the student's repeated requests for specific and verifiable information by providing concrete details about the program's cost, placement rate, and average salary for past students.",
+      "strategic_intent": "to clarify the relationship between the 70% score, effort, and interview opportunities, and to partially define 'Front Engineer', while managing expectations about guaranteed success without effort.",
       "confidence_score": 85,
-      "emotional_state": "informative and helpful",
+      "emotional_state": "direct and instructive",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:57:35.813348",
+      "timestamp": "2026-02-17T20:40:44.378075",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "425c4fc3-bde7-4641-9c31-b13c347219c6",
+      "id": "a257dbd2-27ab-4576-b454-6f679ca6083c",
       "round": 5,
       "agent": "student",
-      "content": "Right, let's try this again, shall we? You've just quoted \"1005000 + GST\". Is that a typo? Because earlier you said 1.5 lakhs, then 1.65 lakhs, and now this. Can you please, for the love of clarity, tell me the exact, final programme fee, inclusive of all taxes and GST? This constant shifting of figures is genuinely undermining my trust in this entire conversation.\nAs for the placements, \"more than 95% for this program\" and \"around 15 lakhs\" is a start, I suppose. However, that's still quite vague. Can you provide any verifiable data for these claims? What specific roles have past participants of *this Agentic AI Systems programme* actually secured? I need concrete examples, perhaps some case studies or a list of companies that have hired from this specific cohort. I need more than just a broad percentage and an approximate salary; I need to understand the true return on investment and how it aligns with my career progression, not just general market sentiments.",
+      "content": "Samantha, with all due respect, that wasn't an answer to my question. You said \"Front Engineer\" refers to \"front and engineer,\" which doesn't clarify the role at all for career progression. Could you please give me a proper job description or typical responsibilities for a \"Front Engineer\" in the context of this programme? I need to understand the actual roles.\nAnd regarding the 70% score, you haven't actually clarified the policy. You asked *me* if I think I'd crack an interview if I didn't score 70%, which is a different matter entirely. My question is about the *programme's* guarantee. If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need a clear, direct answer on what the actual *placement outcomes* are for all learners, regardless of whether they hit that internal 70% target. Is the 95% figure contingent on that 70% score?",
       "techniques": [],
-      "strategic_intent": "To demand extreme clarity on pricing and push for verifiable, specific placement data to build trust and assess return on investment.",
+      "strategic_intent": "seeking clarification and reassurance on specific placement guarantees, pushing back against deflection",
       "confidence_score": 60,
       "emotional_state": "frustrated",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:57:41.498951",
+      "timestamp": "2026-02-17T20:40:51.521204",
       "generation_mode": "stream"
     }
   ],
   "history_for_reporting": [
     {
-      "id": "f0c302ae-b852-4658-a54d-6b0718bdf9df",
+      "id": "72d0268c-b4e3-4727-a3e6-bc352898bde2",
       "round": 1,
       "agent": "counsellor",
-      "content": "hello Rajesh this is simanta I saw your interested in our building isn't it systems program can you let me know how I can help you",
+      "content": "hello Rohan and Samantha here so can you tell me what you are looking for",
       "techniques": [
-        "Greeting and Introduction",
-        "Acknowledging Client's Interest",
-        "Open Question for Needs Assessment"
+        "introduction",
+        "open-ended questioning"
       ],
-      "strategic_intent": "Initiate conversation and gather information about client's specific needs/interest in the program.",
+      "strategic_intent": "gather initial information",
       "confidence_score": 0,
-      "emotional_state": "helpful and welcoming",
+      "emotional_state": "welcoming",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:53:06.715877",
+      "timestamp": "2026-02-17T20:34:53.252552",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "1617581e-f6d5-4428-8f36-3d76e98b24e0",
+      "id": "0876aec8-0f0f-400d-8910-b7b14e4bcca3",
       "round": 1,
       "agent": "student",
-      "content": "Hello, it's Rahul, not Rajesh. I'm interested in the programme, but I've got a few concerns, particularly regarding the overall cost and what actual placement outcomes one can expect from it. I've seen a lot of programmes make big promises, so I'm keen to understand the practicalities.",
+      "content": "Hello Samantha, thanks for reaching out. Well, I'm currently a Junior Software Engineer, and to be frank, I feel a bit stuck in my career. I'm looking for a programme that can genuinely help me transition into the more advanced AI roles I see my peers getting into. I really want to develop job-ready capabilities in something cutting-edge like Agentic AI. Ultimately, I'm hoping for a strong return on investment and solid placement outcomes, if that's something your programme offers.",
       "techniques": [],
-      "strategic_intent": "To correct the counsellor's error, immediately flag my primary concerns about price and job outcomes, and convey my existing skepticism about programme promises.",
+      "strategic_intent": "To explain my current situation and primary motivation (career progression, job security, ROI) while subtly hinting at my unresolved concerns (placement outcomes, cost).",
       "confidence_score": 60,
-      "emotional_state": "skeptical",
-      "internal_thought": "Right, \"Rajesh\" is it? Excellent start. Can't even get my name right, clearly just another number on their spreadsheet. This definitely doesn't inspire confidence or trust. How many other people have they misidentified today, I wonder? Shows a distinct lack of attention to detail. This isn't building any trust whatsoever. My resistance is definitely going up. I'm still curious about the programme itself, but this initial interaction is just sloppy. I need to correct them and then get to the actual points I care about: the cost and whether it actually leads to a job, not just another piece of paper.",
+      "emotional_state": "curious",
+      "internal_thought": "Right, so they've just asked what I'm looking for. I need to explain my situation, why I'm here, and what I expect from a programme like this. I'm feeling a bit stuck in my current job and really want to move into something better, something with actual career progression. I'm hoping this Agentic AI thing is the key. I need to mention job prospects and a good return on investment, that's really important for me. Price is a huge worry too, but I can't just blurt that out yet. Focus on the career first.",
       "updated_stats": {
-        "sentiment": "skeptical",
-        "skepticism_level": 20,
-        "trust_score": 47,
+        "sentiment": "curious",
+        "skepticism_level": 5,
+        "trust_score": 54,
         "unresolved_concerns": [
           "Price",
           "Job Guarantee"
         ]
       },
       "updated_state": {
-        "sentiment": "skeptical",
-        "skepticism_level": 20,
-        "trust_score": 47,
+        "sentiment": "curious",
+        "skepticism_level": 5,
+        "trust_score": 54,
         "unresolved_concerns": [
           "Price",
           "Job Guarantee"
         ]
       },
-      "timestamp": "2026-02-17T17:53:09.712395",
+      "timestamp": "2026-02-17T20:34:56.254400",
       "generation_mode": "stream"
     },
     {
-      "id": "6fb36e81-10f6-4bda-abbf-2076808eeddd",
+      "id": "1ef47396-a7e1-4a05-a51a-36731c541d58",
       "round": 2,
       "agent": "counsellor",
-      "content": "okay so this is 300 over program in each An engineering program and isn't it is on high demand in the market money Industries have lots of jobs opening can you tell me anything specific you would like to know",
+      "content": "okay so we have a placement cell and we have a record of over 95% placement of our students does it help s you",
       "techniques": [
-        "Providing Program Information",
-        "Highlighting Market Demand/Employability",
-        "Open Question for Needs Assessment"
+        "providing information",
+        "checking understanding",
+        "building credibility"
       ],
-      "strategic_intent": "Provide information about the program's market demand and employability, and solicit specific questions from the student to address their concerns more directly.",
-      "confidence_score": 85,
-      "emotional_state": "informative and helpful",
+      "strategic_intent": "to address student's concern about placement outcomes and highlight program benefits",
+      "confidence_score": 90,
+      "emotional_state": "reassuring",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:53:54.323327",
+      "timestamp": "2026-02-17T20:35:55.266892",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "2326b137-a321-45bc-beb1-c15a90ef9e5c",
+      "id": "fe1babeb-3361-4220-b961-f1435dd01338",
       "round": 2,
       "agent": "student",
-      "content": "Look, I understand AI is in high demand; that's why I'm looking into it. However, my specific concerns, which you didn't quite address, are the actual programme fee and, more critically, the concrete placement outcomes. I need to know what the return on investment will be, not just general market trends. Can you provide details on those points, please?",
+      "content": "That 95% placement figure sounds really impressive, Samantha. However, I'm trying to understand what that actually entails for a learner like me. The program details mention eligibility criteria like a 70% score and being an India resident, and that support includes up to three interview opportunities within 120 days. Does that 95% success rate apply to *all* enrolled students, or only those who meet the strict eligibility and activity criteria? And what kind of roles and salary packages are typically secured by those 95%? I'm keen to ensure this translates into a strong return on investment for my career transition.",
       "techniques": [],
-      "strategic_intent": "reiterate unresolved concerns and push for specific answers, expressing frustration at the lack of direct response",
+      "strategic_intent": "Clarify placement claims and efficacy",
       "confidence_score": 60,
-      "emotional_state": "frustrated",
-      "internal_thought": "Bloody hell, did he even listen to me? I specifically asked about cost and placement outcomes, and he just went on about \"high demand in the market\" and \"lots of jobs opening.\" That's sales talk, pure and simple. It tells me absolutely nothing about whether *this* programme actually gets people those jobs, or what the return on investment truly is. He didn't even acknowledge my concerns. My suspicion is through the roof now. This is exactly what I mean about half-baked promises. They just want my money, don't they? I need to get back to the point and make it clear I'm not buying into the hype.",
+      "emotional_state": "Skeptical but hopeful",
+      "internal_thought": "The 95% placement claim seems very high, especially given the eligibility conditions and limited interview opportunities mentioned in the program details. I need to understand the true scope and impact of this figure on individual learners' job prospects and if it aligns with my goal for a strong return on investment and transition to advanced AI roles.",
       "updated_stats": {
-        "sentiment": "skeptical",
-        "skepticism_level": 35,
-        "trust_score": 35,
+        "sentiment": "curious",
+        "skepticism_level": 5,
+        "trust_score": 54,
         "unresolved_concerns": [
           "Job Guarantee",
           "Price"
         ]
       },
       "updated_state": {
-        "sentiment": "skeptical",
-        "skepticism_level": 35,
-        "trust_score": 35,
+        "sentiment": "curious",
+        "skepticism_level": 5,
+        "trust_score": 54,
         "unresolved_concerns": [
           "Job Guarantee",
           "Price"
         ]
       },
-      "timestamp": "2026-02-17T17:53:57.504314",
-      "generation_mode": "stream"
+      "timestamp": "2026-02-17T20:36:03.297666",
+      "generation_mode": "structured_retry"
     },
     {
-      "id": "5a88be58-6193-4c0d-832d-f2a0e8bc8004",
+      "id": "89a0f075-6c25-45d9-86b2-8a8096569dac",
       "round": 3,
       "agent": "counsellor",
-      "content": "so are the program is 1.5 lacs + GST and we have an excellent placement cells that will assist you in the placement part we have a high placement rate in across NIT across all over programs and hope I was level to answer your query",
+      "content": "so typically our students are eligible for industry roles like AI engineers from engineer engineers and also Rag Engineer with the salary bracket of you not 10 to 15 lakhs per annum and where did you get the 70% score eligibility criteria",
       "techniques": [
-        "Providing Program Information",
-        "Highlighting Placement Support",
-        "Highlighting Placement Success/Rate",
-        "Checking for Understanding/Satisfaction"
+        "providing information",
+        "asking for clarification"
       ],
-      "strategic_intent": "To directly address the student's specific concerns about program cost and placement outcomes by providing concrete details and reassuring them about support and success, then confirming if their query has been resolved.",
-      "confidence_score": 85,
-      "emotional_state": "informative, reassuring, and helpful",
+      "strategic_intent": "provide details on career outcomes and clarify eligibility criteria",
+      "confidence_score": 80,
+      "emotional_state": "informative and inquiring",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:54:51.813026",
+      "timestamp": "2026-02-17T20:37:25.133450",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "8ca61b44-fafb-49ba-9bee-1ce81fba3ab8",
+      "id": "b2bcfe08-8394-463a-baaf-871e01d6e0eb",
       "round": 3,
       "agent": "student",
-      "content": "Look, with all due respect, \"excellent placement cells\" and a \"high placement rate across NIIT\" isn't the specific information I'm looking for. I need concrete details for *this* programme, for *Agentic AI Systems*. What are the actual placement outcomes for past participants of *this specific course*? What kind of roles did they secure, and what were the average salary packages? That's what I mean by return on investment.\nAlso, you just said the programme is 1.5 lakhs + GST, but earlier you mentioned an offer of 1,65,000. Which one is it? I need clarity on the actual programme fee, and whether that includes GST, as well as clear, verifiable information on placement outcomes, not just general statements.",
+      "content": "Thank you for clarifying the typical roles and salary bracket, Samantha. 10 to 15 lakhs sounds like a very strong return on investment, which is encouraging. Could you perhaps elaborate on what a \"Front Engineer\" entails in this context?\nRegarding the 70% score eligibility, I noted that directly from the programme details you sent over. Specifically, under \"placement support details,\" it states: \"Placement assistance is available for eligible learners (70% score, regular graduation degree, India resident).\" My query was really about whether the impressive 95% placement success rate applies to *all* enrolled students, or only those who meet these specific, strict eligibility and activity criteria, including the 70% score. I just want to ensure I fully understand the *placement outcomes* and what's genuinely guaranteed.",
       "techniques": [],
-      "strategic_intent": "To demand specific, verifiable details regarding placement outcomes and to clarify the conflicting price information, as the counsellor's responses have been vague and unhelpful, increasing my suspicion and frustration.",
+      "strategic_intent": "To reiterate my previous point about eligibility criteria, clarify a vague role title, and get more precise details about the 95% placement success rate in relation to the eligibility conditions, as I am concerned about job guarantee and return on investment.",
       "confidence_score": 60,
-      "emotional_state": "frustrated",
-      "internal_thought": "Seriously? \"Excellent placement cells\" and \"high placement rate across NIIT across all our programs\"? That's precisely the kind of vague, unspecific sales jargon I was hoping to avoid. It tells me absolutely nothing about *this* particular programme, *this* specific job market, or *my* potential return on investment. And they still got my name wrong, it's Rahul, not Rajesh! This is just frustrating. They've given me a price, but it seems to conflict with the offer they first presented. I need specifics, not platitudes. My trust is definitely eroding here.",
+      "emotional_state": "vigilant",
+      "internal_thought": "Right, the salary figures sound promising, 10 to 15 lakhs is definitely what I'm aiming for. That's a significant jump from my current package. The roles like AI Engineer and RAG Engineer also align with what I'm looking for. But \"Front Engineer\"? Is that like a frontend developer, or something specific to AI? I need to clarify that.\n\nAnd honestly, I'm a bit miffed. I explicitly mentioned the 70% score criteria for placement eligibility directly from the programme details, and now they're asking where I got it from? Did they even read what I said? It makes me question how much attention they're paying. This is about *my career progression* and *return on investment*, so I need precise answers, not to be questioned about information *they've* provided. It adds to my worry that there might be hidden catches or that they're not fully across their own terms. I need to gently but firmly point out where I got that information and get proper clarification on the placement guarantee. My primary concern about job security is still very much active.",
       "updated_stats": {
-        "sentiment": "frustrated",
-        "skepticism_level": 55,
-        "trust_score": 20,
+        "sentiment": "vigilant",
+        "skepticism_level": 15,
+        "trust_score": 50,
         "unresolved_concerns": [
           "Job Guarantee",
-          "Price",
-          "Specific Placement Outcomes"
+          "Price"
         ]
       },
       "updated_state": {
-        "sentiment": "frustrated",
-        "skepticism_level": 55,
-        "trust_score": 20,
+        "sentiment": "vigilant",
+        "skepticism_level": 15,
+        "trust_score": 50,
         "unresolved_concerns": [
           "Job Guarantee",
-          "Price",
-          "Specific Placement Outcomes"
+          "Price"
         ]
       },
-      "timestamp": "2026-02-17T17:54:55.686597",
+      "timestamp": "2026-02-17T20:37:31.546493",
       "generation_mode": "stream"
     },
     {
-      "id": "2fafb7f9-b75e-455b-a378-b836eac3dfe7",
+      "id": "7e776d1b-6c2e-4d45-b724-d1bc884f7d94",
       "round": 4,
       "agent": "counsellor",
-      "content": "okay it is 165000 + GST and SD card to your specific questions this year in the first job right so average salary that we see R AI engineers in companies around 15 to 20 lakh per annum does it helps you",
+      "content": "yeah so already is not strictly but we try to put in place that all over learners scores at the minimum 70% and what is quickly required as a prerequisite you have to be a Indian resident and also have positive graduation from recognize University",
       "techniques": [
-        "Providing Program Information",
-        "Providing Placement Outcome Data",
-        "Checking for Understanding/Satisfaction"
+        "providing information",
+        "clarifying information"
       ],
-      "strategic_intent": "To clarify the program cost, provide specific average salary expectations for AI engineers, and confirm if the student's queries have been adequately addressed.",
-      "confidence_score": 85,
-      "emotional_state": "informative and helpful",
+      "strategic_intent": "clarify eligibility criteria and prerequisites for placement",
+      "confidence_score": 90,
+      "emotional_state": "informative",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:56:09.284525",
+      "timestamp": "2026-02-17T20:39:03.822997",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "54ac5061-01e5-4115-aabd-d7c7d0423c36",
+      "id": "d7d85804-bbd3-49b1-a742-01e33e0c250d",
       "round": 4,
       "agent": "student",
-      "content": "Hold on a moment, this is precisely what I mean about clarity. First, you mentioned the programme fee was 1.5 lakhs + GST, then you quoted me an offer of 1,65,000, and now you're stating it's 165,000 + GST. Which figure is it, precisely? And does that 165,000 include the GST, or is it additional? This inconsistent pricing is quite concerning and makes it difficult to trust the information.\nSecondly, regarding the placement outcomes, I appreciate the general market information, but that's not what I asked for. I specifically requested concrete details for *this Agentic AI Systems programme*. What were the actual placement outcomes for *past participants* of *this specific course*? What specific roles did they secure, and what were their average salary packages? I need verifiable information to understand the true return on investment, not just broad industry averages.",
+      "content": "Right, I understand about being an Indian resident and having a recognised degree. But, Samantha, my core concern here is still about the 70% score and how it relates to the 95% placement success rate. You mentioned it's \"not strictly\" required, but that you \"try to put in place\" that learners achieve it. Could you please clarify this for me directly? If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need to understand what's genuinely guaranteed regarding *placement outcomes* for every learner, not just those who hit specific internal targets.\nAnd, if you wouldn't mind, could you please elaborate on what a \"Front Engineer\" role typically involves? I'm trying to get a clear picture of the specific career progression this programme offers.",
       "techniques": [],
-      "strategic_intent": "To demand clarity on pricing inconsistencies and insist on specific, verifiable placement data for the programme, not general market trends, as my trust and value for money concerns are not being met.",
+      "strategic_intent": "seeking clarification on placement eligibility and role definition, reiterating unresolved concerns due to vague answers",
       "confidence_score": 60,
       "emotional_state": "frustrated",
-      "internal_thought": "This is utterly ridiculous! First, they give me a general figure, then they contradict themselves on the price *again*. They said \"1.5 lacs + GST\" earlier, then the offer was \"1,65,000\", and now it's \"165000 + GST\". Are they just making these numbers up as they go along? This is exactly the kind of sales talk and hidden terms that stresses me out. How can I trust anything they say if they can't even keep their pricing consistent?\n\nAnd then, about the placements, they're still giving me general market averages. \"AI engineers in companies around 15 to 20 lakh per annum\" tells me absolutely nothing about *this specific programme's* success or whether *I* would achieve that. I asked for specific outcomes for *past participants of this course*. They're completely dodging the question, which makes me think they've either got nothing or it's not impressive. My trust is plummeting. They're not addressing my core concerns about value for money or tangible outcomes. This feels like a waste of my time.",
+      "internal_thought": "This is still so confusing. \"Not strictly\" but \"we try to put in place\"? What does that even mean? So, if I don't get 70%, does the 95% placement rate still apply to me or not? They're dancing around the question. And they still haven't explained what a \"Front Engineer\" is. My primary motivation is job security and a clear path, and this vagueness just makes me panic. I'm putting a lot of money and time into this; I need concrete answers, not 'we try to put in place'. What if I don't achieve 70%? Does that mean I'm essentially excluded from the placement support that the 95% figure is based on? This feels like a huge risk. I need to be more direct. I'm worried about wasting my money if the placement support isn't genuinely for me.",
       "updated_stats": {
-        "sentiment": "frustrated",
-        "skepticism_level": 70,
-        "trust_score": 10,
+        "sentiment": "skeptical",
+        "skepticism_level": 25,
+        "trust_score": 40,
         "unresolved_concerns": [
           "Job Guarantee",
           "Price",
-          "Specific Placement Outcomes"
+          "Placement Criteria Clarity"
         ]
       },
       "updated_state": {
-        "sentiment": "frustrated",
-        "skepticism_level": 70,
-        "trust_score": 10,
+        "sentiment": "skeptical",
+        "skepticism_level": 25,
+        "trust_score": 40,
         "unresolved_concerns": [
           "Job Guarantee",
           "Price",
-          "Specific Placement Outcomes"
+          "Placement Criteria Clarity"
         ]
       },
-      "timestamp": "2026-02-17T17:56:15.099529",
+      "timestamp": "2026-02-17T20:39:08.881228",
       "generation_mode": "stream"
     },
     {
-      "id": "3f69708a-3f44-4bfb-ba31-45cb4cc3f178",
+      "id": "be0fa545-e90a-472f-b9b3-88f644b90e20",
       "round": 5,
       "agent": "counsellor",
-      "content": "so it is 1005000 + GST so past students have you know placement rate of more than 95% for this program and average salary is around you know 1500000",
+      "content": "engineer typically refers to front and engineer and regarding the 70% let me ask you back on a question right so if you don't score 70% about placement is in team will definitely you know put you in three interview bracket but if you have not put in effort introduce program and score very low do you think you will be able to crackers interview",
       "techniques": [
-        "Providing Program Information",
-        "Highlighting Placement Success/Rate",
-        "Providing Placement Outcome Data"
+        "providing information",
+        "clarifying information",
+        "setting expectations",
+        "asking rhetorical questions"
       ],
-      "strategic_intent": "To directly address the student's repeated requests for specific and verifiable information by providing concrete details about the program's cost, placement rate, and average salary for past students.",
+      "strategic_intent": "to clarify the relationship between the 70% score, effort, and interview opportunities, and to partially define 'Front Engineer', while managing expectations about guaranteed success without effort.",
       "confidence_score": 85,
-      "emotional_state": "informative and helpful",
+      "emotional_state": "direct and instructive",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T17:57:35.813348",
+      "timestamp": "2026-02-17T20:40:44.378075",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "425c4fc3-bde7-4641-9c31-b13c347219c6",
+      "id": "a257dbd2-27ab-4576-b454-6f679ca6083c",
       "round": 5,
       "agent": "student",
-      "content": "Right, let's try this again, shall we? You've just quoted \"1005000 + GST\". Is that a typo? Because earlier you said 1.5 lakhs, then 1.65 lakhs, and now this. Can you please, for the love of clarity, tell me the exact, final programme fee, inclusive of all taxes and GST? This constant shifting of figures is genuinely undermining my trust in this entire conversation.\nAs for the placements, \"more than 95% for this program\" and \"around 15 lakhs\" is a start, I suppose. However, that's still quite vague. Can you provide any verifiable data for these claims? What specific roles have past participants of *this Agentic AI Systems programme* actually secured? I need concrete examples, perhaps some case studies or a list of companies that have hired from this specific cohort. I need more than just a broad percentage and an approximate salary; I need to understand the true return on investment and how it aligns with my career progression, not just general market sentiments.",
+      "content": "Samantha, with all due respect, that wasn't an answer to my question. You said \"Front Engineer\" refers to \"front and engineer,\" which doesn't clarify the role at all for career progression. Could you please give me a proper job description or typical responsibilities for a \"Front Engineer\" in the context of this programme? I need to understand the actual roles.\nAnd regarding the 70% score, you haven't actually clarified the policy. You asked *me* if I think I'd crack an interview if I didn't score 70%, which is a different matter entirely. My question is about the *programme's* guarantee. If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need a clear, direct answer on what the actual *placement outcomes* are for all learners, regardless of whether they hit that internal 70% target. Is the 95% figure contingent on that 70% score?",
       "techniques": [],
-      "strategic_intent": "To demand extreme clarity on pricing and push for verifiable, specific placement data to build trust and assess return on investment.",
+      "strategic_intent": "seeking clarification and reassurance on specific placement guarantees, pushing back against deflection",
       "confidence_score": 60,
       "emotional_state": "frustrated",
-      "internal_thought": "This is absolutely maddening! One moment it's 1.5 lakhs, then 1.65 lakhs, now \"1005000 + GST\" – what in the blazes is that even supposed to mean? It feels like they're just pulling numbers out of thin air. How can I possibly trust anything they say if they can't even get the basic price right? And then the placement figures, \"around 15 lakhs\". 'Around' isn't good enough when I'm risking this much money on a programme. They're making a big claim about a 95% placement rate for *this* programme, but where's the proof? Where are the actual roles? My career is on the line here, I can't just take their word for it. It's all starting to feel like another one of those empty promises, just like all the others I've seen. I'm not smart enough for this if they can't even explain it clearly.",
+      "internal_thought": "Oh, for goodness' sake! They completely dodged the question again, didn't they? \"Front Engineer\" refers to \"front and engineer\"? That's not an explanation at all! And then they turn my question back on me, making it sound like it's *my* fault if I don't score 70%. That's not what I asked! I asked about the *policy* – if I don't hit 70%, do I still get the full placement support and am I included in the 95%? They just made me feel like I'd fail and then blamed me for it. This is exactly why I'm so worried. I need concrete answers, not rhetorical questions that make me doubt myself. This feels like they're hiding something or making excuses. My fear of not being smart enough is really kicking in. I can't afford to invest this much money if the job guarantee is so conditional and unclear. What if I try my best, but just can't get that 70%? Does that mean the whole thing was a waste? This is so stressful.",
       "updated_stats": {
         "sentiment": "frustrated",
-        "skepticism_level": 85,
-        "trust_score": 5,
+        "skepticism_level": 50,
+        "trust_score": 25,
         "unresolved_concerns": [
-          "Price",
-          "Specific Placement Outcomes"
+          "Job Guarantee",
+          "Placement Criteria Clarity",
+          "Price"
         ]
       },
       "updated_state": {
         "sentiment": "frustrated",
-        "skepticism_level": 85,
-        "trust_score": 5,
+        "skepticism_level": 50,
+        "trust_score": 25,
         "unresolved_concerns": [
-          "Price",
-          "Specific Placement Outcomes"
+          "Job Guarantee",
+          "Placement Criteria Clarity",
+          "Price"
         ]
       },
-      "timestamp": "2026-02-17T17:57:41.498951",
+      "timestamp": "2026-02-17T20:40:51.521204",
       "generation_mode": "stream"
     }
   ]
