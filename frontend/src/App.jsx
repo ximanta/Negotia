@@ -14,11 +14,11 @@ const ACTIVATION_STEPS = [
   "Entering the CloseWire...",
 ];
 const HINDI_ACTIVATION_STEPS = [
-  "ड्यूल एरीना तैयार हो रहा है...",
-  "नेगोशिएशन रिफ्लेक्स कैलिब्रेट हो रहे हैं...",
-  "पर्सोना डीएनए लोड हो रहा है...",
-  "मनोवैज्ञानिक प्रोफाइल विश्लेषित हो रही है...",
-  "क्लोजवायर में प्रवेश हो रहा है...",
+  "à¤¡à¥à¤¯à¥‚à¤² à¤à¤°à¥€à¤¨à¤¾ à¤¤à¥ˆà¤¯à¤¾à¤° à¤¹à¥‹ à¤°à¤¹à¤¾ à¤¹à¥ˆ...",
+  "à¤¨à¥‡à¤—à¥‹à¤¶à¤¿à¤à¤¶à¤¨ à¤°à¤¿à¤«à¥à¤²à¥‡à¤•à¥à¤¸ à¤•à¥ˆà¤²à¤¿à¤¬à¥à¤°à¥‡à¤Ÿ à¤¹à¥‹ à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚...",
+  "à¤ªà¤°à¥à¤¸à¥‹à¤¨à¤¾ à¤¡à¥€à¤à¤¨à¤ à¤²à¥‹à¤¡ à¤¹à¥‹ à¤°à¤¹à¤¾ à¤¹à¥ˆ...",
+  "à¤®à¤¨à¥‹à¤µà¥ˆà¤œà¥à¤žà¤¾à¤¨à¤¿à¤• à¤ªà¥à¤°à¥‹à¤«à¤¾à¤‡à¤² à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤¿à¤¤ à¤¹à¥‹ à¤°à¤¹à¥€ à¤¹à¥ˆ...",
+  "à¤•à¥à¤²à¥‹à¤œà¤µà¤¾à¤¯à¤° à¤®à¥‡à¤‚ à¤ªà¥à¤°à¤µà¥‡à¤¶ à¤¹à¥‹ à¤°à¤¹à¤¾ à¤¹à¥ˆ...",
 ];
 const COMMITMENT_LABELS = {
   none: "No Commitment",
@@ -48,24 +48,12 @@ const DEFAULT_VOICE_PROFILE_MAPPING = {
   voice_preferences: {
     male: ["Google UK English Male", "Microsoft David", "David", "Male"],
     female: ["Google US English", "Microsoft Zira", "Zira", "Female"],
-    neutral: ["Google US English", "Google UK English Male", "Microsoft Zira"],
   },
-  profile_gender_defaults: {
-    desperate_switcher: "male",
-    skeptical_shopper: "female",
-    stagnant_pro: "male",
-    credential_hunter: "female",
-    intellectual_buyer: "male",
-    fomo_victim: "male",
-    drifter: "male",
+  hindi_voice_preferences: {
+    male: ["Google हिन्दी", "Microsoft Heera", "Hindi Male"],
+    female: ["Google हिन्दी", "Microsoft Heera", "Hindi Female"],
   },
 };
-const MALE_NAME_HINTS = new Set([
-  "rahul", "aman", "arjun", "karan", "vikram", "nikhil", "saurabh", "rohan", "rohit", "ankit", "aditya",
-]);
-const FEMALE_NAME_HINTS = new Set([
-  "riya", "neha", "sana", "anjali", "priya", "pooja", "isha", "shruti", "kavya", "simran",
-]);
 
 const PILLAR_ITEM_TRUNCATE = 120;
 const STUDENT_CONTROL_PREFIXES = [
@@ -262,16 +250,14 @@ function App() {
   const isHumanMode = isHumanDrivenPipeline(negotiationMode);
   const isAgentPoweredMode = negotiationMode === "agent_powered_human_vs_ai";
   const profileImageName = String(persona?.archetype_id || "student-placeholder").trim().toLowerCase();
+  const personaLanguageStyle = String(persona?.language_style || "").trim().toLowerCase();
+  const isHindiPersona = personaLanguageStyle.includes("hindi")
+    || (isHumanMode && profileImageName === "skeptical_shopper");
   const inferredGender = useMemo(() => {
     const explicit = String(persona?.gender || "").trim().toLowerCase();
-    if (explicit === "male" || explicit === "female" || explicit === "neutral") return explicit;
-    const mapped = String(voiceProfileMapping?.profile_gender_defaults?.[profileImageName] || "").trim().toLowerCase();
-    if (mapped === "male" || mapped === "female" || mapped === "neutral") return mapped;
-    const first = String(persona?.name || "").trim().split(/\s+/)[0].toLowerCase();
-    if (MALE_NAME_HINTS.has(first)) return "male";
-    if (FEMALE_NAME_HINTS.has(first)) return "female";
-    return "neutral";
-  }, [persona?.gender, persona?.name, profileImageName, voiceProfileMapping]);
+    if (explicit === "male" || explicit === "female") return explicit;
+    return "male";
+  }, [persona?.gender]);
 
   useEffect(() => {
     stageRef.current = stage;
@@ -406,8 +392,21 @@ function App() {
     if (!synth) return null;
     const voices = synth.getVoices() || [];
     if (!voices.length) return null;
-    const needsHindiVoice = isHumanMode && profileImageName === "skeptical_shopper";
+
+    const needsHindiVoice = isHindiPersona;
     if (needsHindiVoice) {
+      const hindiPrefs = voiceProfileMapping?.hindi_voice_preferences || DEFAULT_VOICE_PROFILE_MAPPING.hindi_voice_preferences;
+      const preferredHindiNames = hindiPrefs[inferredGender] || [];
+      for (const preference of preferredHindiNames) {
+        const token = String(preference || "").toLowerCase();
+        if (!token) continue;
+        const matchedHindiPreferred = voices.find((voice) => String(voice.name || "").toLowerCase().includes(token));
+        if (matchedHindiPreferred) {
+          selectedVoiceRef.current = matchedHindiPreferred;
+          selectedVoiceNameRef.current = `${matchedHindiPreferred.name} (${matchedHindiPreferred.lang})`;
+          return matchedHindiPreferred;
+        }
+      }
       const hindiVoice = voices.find((voice) => /^hi-in/i.test(String(voice.lang || "")))
         || voices.find((voice) => /hindi|hi-in/i.test(`${voice.name || ""} ${voice.lang || ""}`));
       if (hindiVoice) {
@@ -416,8 +415,9 @@ function App() {
         return hindiVoice;
       }
     }
+
     const preferences = voiceProfileMapping?.voice_preferences || DEFAULT_VOICE_PROFILE_MAPPING.voice_preferences;
-    const preferredNames = preferences[inferredGender] || preferences.neutral || [];
+    const preferredNames = preferences[inferredGender] || [];
     for (const preference of preferredNames) {
       const token = String(preference || "").toLowerCase();
       if (!token) continue;
@@ -428,6 +428,7 @@ function App() {
         return matched;
       }
     }
+
     if (inferredGender === "male") {
       const maleLike = voices.find((voice) => /male|david|mark|daniel|george/i.test(String(voice.name || "")));
       if (maleLike) {
@@ -435,7 +436,15 @@ function App() {
         selectedVoiceNameRef.current = `${maleLike.name} (${maleLike.lang})`;
         return maleLike;
       }
+    } else {
+      const femaleLike = voices.find((voice) => /female|zira|heera|susan|hazel|sarah/i.test(String(voice.name || "")));
+      if (femaleLike) {
+        selectedVoiceRef.current = femaleLike;
+        selectedVoiceNameRef.current = `${femaleLike.name} (${femaleLike.lang})`;
+        return femaleLike;
+      }
     }
+
     const englishIndian = voices.find((voice) => /^en-in/i.test(String(voice.lang || "")));
     if (englishIndian) {
       selectedVoiceRef.current = englishIndian;
@@ -448,7 +457,7 @@ function App() {
       ? `${selectedVoiceRef.current.name} (${selectedVoiceRef.current.lang})`
       : "";
     return selectedVoiceRef.current;
-  }, [inferredGender, isHumanMode, profileImageName, voiceProfileMapping]);
+  }, [inferredGender, isHindiPersona, voiceProfileMapping]);
 
   const orderedDrafts = useMemo(() => Object.values(drafts), [drafts]);
   const allCards = useMemo(
@@ -611,9 +620,9 @@ function App() {
   }, [metrics?.sentiment_indicator]);
   const activationTitle = useMemo(() => {
     if (selectedArchetype === "skeptical_shopper") {
-      if (negotiationMode === "human_vs_ai") return "ह्यूमन बनाम एजेंट ड्यूल सक्रिय";
-      if (negotiationMode === "agent_powered_human_vs_ai") return "एजेंट असिस्टेड ह्यूमन बनाम एजेंट ड्यूल सक्रिय";
-      return "एजेंट बनाम एजेंट ड्यूल सक्रिय";
+      if (negotiationMode === "human_vs_ai") return "à¤¹à¥à¤¯à¥‚à¤®à¤¨ à¤¬à¤¨à¤¾à¤® à¤à¤œà¥‡à¤‚à¤Ÿ à¤¡à¥à¤¯à¥‚à¤² à¤¸à¤•à¥à¤°à¤¿à¤¯";
+      if (negotiationMode === "agent_powered_human_vs_ai") return "à¤à¤œà¥‡à¤‚à¤Ÿ à¤…à¤¸à¤¿à¤¸à¥à¤Ÿà¥‡à¤¡ à¤¹à¥à¤¯à¥‚à¤®à¤¨ à¤¬à¤¨à¤¾à¤® à¤à¤œà¥‡à¤‚à¤Ÿ à¤¡à¥à¤¯à¥‚à¤² à¤¸à¤•à¥à¤°à¤¿à¤¯";
+      return "à¤à¤œà¥‡à¤‚à¤Ÿ à¤¬à¤¨à¤¾à¤® à¤à¤œà¥‡à¤‚à¤Ÿ à¤¡à¥à¤¯à¥‚à¤² à¤¸à¤•à¥à¤°à¤¿à¤¯";
     }
     if (negotiationMode === "human_vs_ai") return "Human vs Agent Duel Activated";
     if (negotiationMode === "agent_powered_human_vs_ai") return "Agent Assisted Human vs Agent Duel Activated";
@@ -692,7 +701,9 @@ function App() {
     return "Outcome: No Deal";
   }, [analysis, counsellorName, persona]);
 
-  const bgUrl = `${process.env.PUBLIC_URL || ""}/negotiation.png`;
+  const bgUrl = (stage === "negotiating" || stage === "completed")
+    ? `${process.env.PUBLIC_URL || ""}/negotiation_transparent.png`
+    : `${process.env.PUBLIC_URL || ""}/negotiation.png`;
 
   const generateCounsellorName = () => {
     const firstNames = ["Preetam", "Riya", "Arjun", "Neha", "Aman", "Karan", "Sana", "Vikram"];
@@ -828,9 +839,9 @@ function App() {
             ...DEFAULT_VOICE_PROFILE_MAPPING.voice_preferences,
             ...(payload.voice_preferences || {}),
           },
-          profile_gender_defaults: {
-            ...DEFAULT_VOICE_PROFILE_MAPPING.profile_gender_defaults,
-            ...(payload.profile_gender_defaults || {}),
+          hindi_voice_preferences: {
+            ...DEFAULT_VOICE_PROFILE_MAPPING.hindi_voice_preferences,
+            ...(payload.hindi_voice_preferences || {}),
           },
         });
       })
@@ -1018,8 +1029,10 @@ function App() {
     }
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(String(text).trim());
-    if (isHumanMode && profileImageName === "skeptical_shopper") {
+    if (isHindiPersona) {
       utterance.lang = "hi-IN";
+    } else {
+      utterance.lang = "en-GB";
     }
     const voice = selectSpeechVoice();
     if (voice) utterance.voice = voice;
@@ -1132,8 +1145,7 @@ function App() {
     const recognition = new speechRecognitionCtor();
     recognition.continuous = true;
     recognition.interimResults = true;
-    const activeArchetypeForVoice = String(persona?.archetype_id || selectedArchetype || "").toLowerCase();
-    const shouldUseHindiRecognition = isHumanDrivenPipeline(modeRef.current) && activeArchetypeForVoice === "skeptical_shopper";
+    const shouldUseHindiRecognition = isHumanDrivenPipeline(modeRef.current) && isHindiPersona;
     recognition.lang = shouldUseHindiRecognition ? "hi-IN" : "en-IN";
     recognition.onstart = () => {
       setMicPermissionStatus("granted");
@@ -2052,7 +2064,7 @@ function App() {
                     </div>
                     <div className={`retryDeltaCallout ${retryPerformance.latest.deltaFromPrevious >= 0 ? "improved" : "degraded"}`}>
                       <div className="deltaValue">
-                        {retryPerformance.latest.deltaFromPrevious >= 0 ? "â†—" : "â†˜"} {retryPerformance.latest.deltaFromPrevious >= 0 ? "+" : ""}
+                        {retryPerformance.latest.deltaFromPrevious >= 0 ? "Ã¢â€ â€”" : "Ã¢â€ Ëœ"} {retryPerformance.latest.deltaFromPrevious >= 0 ? "+" : ""}
                         {retryPerformance.latest.deltaFromPrevious}
                       </div>
                       <div className="deltaMeta">
@@ -2199,3 +2211,4 @@ function App() {
 }
 
 export default App;
+

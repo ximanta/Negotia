@@ -1,0 +1,44 @@
+{
+  "default": {
+    "male": [
+      "Aman",
+      "Saurabh",
+      "Nikhil",
+      "Rahul",
+      "Rohan",
+      "Rajesh",
+      "Arjun",
+      "Karan",
+      "Vikram",
+      "Aditya"
+    ],
+    "female": [
+      "Riya",
+      "Neha",
+      "Anjali",
+      "Priya",
+      "Sana",
+      "Kavya",
+      "Pooja",
+      "Shruti",
+      "Isha",
+      "Simran"
+    ]
+  },
+  "archetype_overrides": {
+    "skeptical_shopper": {
+      "male": [
+        "Rajesh",
+        "Rakesh",
+        "Rohan",
+        "Rahul"
+      ],
+      "female": [
+        "Priya",
+        "Neha",
+        "Anjali",
+        "Sana"
+      ]
+    }
+  }
+}

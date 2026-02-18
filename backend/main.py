@@ -166,6 +166,51 @@ ARCHETYPE_CONFIGS: Dict[str, Dict[str, str]] = {
     },
 }
 
+PERSONA_VOICE_CATALOG_FILE = Path(__file__).resolve().parent / "config" / "persona_voice_catalog.json"
+PERSONA_IDENTITY_CATALOG: Optional[Dict[str, Any]] = None
+
+
+def _load_persona_identity_catalog() -> Dict[str, Any]:
+    global PERSONA_IDENTITY_CATALOG
+    if PERSONA_IDENTITY_CATALOG is not None:
+        return PERSONA_IDENTITY_CATALOG
+    fallback = {
+        "default": {
+            "male": ["Aman", "Saurabh", "Nikhil", "Rahul", "Rohan", "Rajesh", "Arjun", "Karan"],
+            "female": ["Riya", "Neha", "Anjali", "Priya", "Sana", "Kavya", "Pooja", "Shruti"],
+        },
+        "archetype_overrides": {},
+    }
+    try:
+        if PERSONA_VOICE_CATALOG_FILE.exists():
+            parsed = json.loads(PERSONA_VOICE_CATALOG_FILE.read_text(encoding="utf-8"))
+            if isinstance(parsed, dict):
+                fallback.update(parsed)
+    except Exception:
+        logger.exception("Failed to load persona voice catalog from %s", PERSONA_VOICE_CATALOG_FILE)
+    PERSONA_IDENTITY_CATALOG = fallback
+    return PERSONA_IDENTITY_CATALOG
+
+
+def _pick_persona_identity(archetype_id: str) -> Tuple[str, str]:
+    catalog = _load_persona_identity_catalog()
+    overrides = catalog.get("archetype_overrides", {}) if isinstance(catalog, dict) else {}
+    default = catalog.get("default", {}) if isinstance(catalog, dict) else {}
+    source = overrides.get(archetype_id) if isinstance(overrides, dict) else None
+    if not isinstance(source, dict):
+        source = default if isinstance(default, dict) else {}
+
+    male_names = [str(x).strip() for x in (source.get("male") or []) if str(x).strip()]
+    female_names = [str(x).strip() for x in (source.get("female") or []) if str(x).strip()]
+    if not male_names:
+        male_names = ["Aman", "Rahul", "Rohan", "Rajesh"]
+    if not female_names:
+        female_names = ["Riya", "Neha", "Anjali", "Priya"]
+
+    gender = random.choice(["male", "female"])
+    name = random.choice(male_names if gender == "male" else female_names)
+    return name, gender
+
 
 class ProgramSummary(TypedDict):
     program_name: str
@@ -1369,6 +1414,7 @@ def _generate_persona(program: ProgramSummary, forced_archetype_id: Optional[str
     else:
         archetype_id = random.choice(list(ARCHETYPE_CONFIGS.keys()))
     archetype = ARCHETYPE_CONFIGS.get(archetype_id, ARCHETYPE_CONFIGS["desperate_switcher"])
+    selected_name, selected_gender = _pick_persona_identity(archetype_id)
     language_style = "Hindi" if archetype_id == "skeptical_shopper" else random.choice(
         ["Indian Academic English", "Corporate Indian English", "Formal Indian English", "Passive Indian English"]
     )
@@ -1382,21 +1428,15 @@ Emotional response: {archetype['emotional_response']}
 Language instruction: {archetype['language_instruction']}
 
 Use realistic Indian context.
-Return learner gender explicitly as male/female/neutral.
+Do NOT invent learner identity.
+Use exactly this learner name: "{selected_name}"
+Use exactly this learner gender: "{selected_gender}".
 If archetype_id is skeptical_shopper, force language_style as pure Hindi (Devanagari). No Hinglish.
 No profanity.
 PROGRAM:
 {json.dumps(program)}
 """
-    fallback_name_gender_pool: List[Tuple[str, str]] = [
-        ("Aman", "male"),
-        ("Riya", "female"),
-        ("Saurabh", "male"),
-        ("Neha", "female"),
-        ("Anjali", "female"),
-        ("Nikhil", "male"),
-    ]
-    fallback_name, fallback_gender = random.choice(fallback_name_gender_pool)
+    fallback_name, fallback_gender = selected_name, selected_gender
     fallback: StudentPersona = {
         "name": fallback_name,
         "gender": fallback_gender,
@@ -1449,7 +1489,7 @@ PROGRAM:
             "type": "object",
             "properties": {
                 "name": {"type": "string"},
-                "gender": {"type": "string", "enum": ["male", "female", "neutral"]},
+                "gender": {"type": "string", "enum": ["male", "female"]},
                 "archetype_id": {"type": "string", "enum": list(ARCHETYPE_LABELS.keys())},
                 "archetype_label": {"type": "string"},
                 "age": {"type": "integer"},
@@ -1491,8 +1531,10 @@ PROGRAM:
     parsed = _to_plain_json(parsed)
     parsed["name"] = str(parsed.get("name") or fallback["name"]).strip() or fallback["name"]
     parsed["gender"] = str(parsed.get("gender") or fallback["gender"]).strip().lower()
-    if parsed["gender"] not in {"male", "female", "neutral"}:
+    if parsed["gender"] not in {"male", "female"}:
         parsed["gender"] = fallback["gender"]
+    parsed["name"] = fallback_name
+    parsed["gender"] = fallback_gender
     parsed["archetype_id"] = str(parsed.get("archetype_id") or archetype_id)
     if parsed["archetype_id"] not in ARCHETYPE_LABELS:
         parsed["archetype_id"] = archetype_id
