@@ -74,10 +74,17 @@ textarea {
   height: 100%;
   object-fit: cover;
   object-position: center 55%;
-  transform: scale(1.01);
-  animation: slowDrift 20s ease-in-out infinite alternate;
+  transform: scale(1.0);
+  transform-origin: 48% 52%;
+  will-change: transform;
   pointer-events: none;
   z-index: 0;
+}
+
+/* Breathing animation only on landing and loading pages */
+.app.stage-idle .hero-bg,
+.app.stage-analyzing .hero-bg {
+  animation: slowDrift 16s ease-in-out infinite alternate;
 }
 
 .app.stage-completed {
@@ -94,6 +101,18 @@ textarea {
   pointer-events: none;
   background: linear-gradient(180deg, rgba(17, 34, 51, 0.75) 0%, rgba(17, 34, 51, 0.88) 100%);
   backdrop-filter: blur(6px);
+}
+
+/* Landing: lighten overlay so breathing animation is perceptible */
+.app.stage-idle .sceneOverlay {
+  background: linear-gradient(180deg, rgba(17, 34, 51, 0.55) 0%, rgba(17, 34, 51, 0.72) 100%);
+  backdrop-filter: blur(2px);
+}
+
+/* Loading: lighten slightly for spotlight to show through */
+.app.stage-analyzing .sceneOverlay {
+  background: linear-gradient(180deg, rgba(17, 34, 51, 0.60) 0%, rgba(17, 34, 51, 0.80) 100%);
+  backdrop-filter: blur(3px);
 }
 
 .sceneOverlay::after {
@@ -484,6 +503,20 @@ textarea {
   z-index: 1;
 }
 
+/* Loading page: Overhead spotlight effect */
+.activationOverlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%,
+      rgba(255, 255, 255, 0.07),
+      rgba(0, 0, 0, 0.5) 70%);
+  opacity: 0.4;
+  animation: spotlightBreathe 10s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .activationContent {
   display: flex;
   flex-direction: column;
@@ -492,6 +525,7 @@ textarea {
   position: relative;
   z-index: 2;
 }
+
 .activationReflection {
   position: absolute;
   left: 50%;
@@ -510,6 +544,8 @@ textarea {
   -webkit-mask-image: linear-gradient(to top, white 30%, transparent 65%);
   mask-image: linear-gradient(to top, white 30%, transparent 65%);
 }
+
+/* Loading page: Table divider glow pulse */
 .activationOverlay::after {
   content: "";
   position: absolute;
@@ -524,6 +560,7 @@ textarea {
       transparent 70%);
   filter: blur(24px);
   pointer-events: none;
+  animation: tableGlowPulse 5s ease-in-out infinite alternate;
 }
 
 .activationOverlay h2 {
@@ -1781,11 +1818,58 @@ textarea {
 
 @keyframes slowDrift {
   from {
-    transform: scale(1.01);
+    transform: scale(1.0);
   }
 
   to {
-    transform: scale(1.03);
+    transform: scale(1.15);
+  }
+}
+
+@keyframes spotlightBreathe {
+  from {
+    opacity: 0.4;
+  }
+
+  to {
+    opacity: 0.85;
+  }
+}
+
+@keyframes tableGlowPulse {
+  from {
+    opacity: 0.4;
+  }
+
+  to {
+    opacity: 0.9;
+  }
+}
+
+/* Accessibility: disable all motion for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg {
+    animation: none;
+    transform: scale(1.02);
+  }
+
+  .activationOverlay::before {
+    animation: none;
+    opacity: 0.65;
+  }
+
+  .activationOverlay::after {
+    animation: none;
+    opacity: 0.65;
+  }
+
+  .activationFill {
+    animation: none;
+    width: 50%;
+  }
+
+  .launchBtn {
+    animation: none;
   }
 }
 
@@ -1851,6 +1935,7 @@ textarea {
 }
 
 @keyframes copilotPulse {
+
   0%,
   100% {
     box-shadow: 0 0 12px rgba(128, 160, 236, 0.34);
@@ -1862,6 +1947,7 @@ textarea {
 }
 
 @keyframes launchPulse {
+
   0%,
   100% {
     box-shadow: 0 0 14px rgba(116, 219, 255, 0.32);
@@ -1885,6 +1971,7 @@ textarea {
 }
 
 @keyframes authFieldPulse {
+
   0%,
   100% {
     border-color: rgba(156, 183, 240, 0.34);
@@ -1908,6 +1995,7 @@ textarea {
 }
 
 @keyframes studentSpeakPulse {
+
   0%,
   100% {
     transform: scale(1);
@@ -1919,6 +2007,7 @@ textarea {
 }
 
 @keyframes micListenPulse {
+
   0%,
   100% {
     transform: scale(1);
