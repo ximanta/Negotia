@@ -6,6 +6,7 @@ function CopilotWidget({
   state,
   data,
   pinnedSuggestion,
+  isHindi = false,
   onApplySuggestion,
   onExpand,
   onMinimize,
@@ -19,6 +20,9 @@ function CopilotWidget({
 
   const showCard = state === "ready";
   const showThinking = state === "thinking";
+  const heading = isHindi ? "कॉर्टेक्स कोपायलट" : "Cortex Copilot";
+  const thinkingLabel = isHindi ? "विश्लेषण जारी..." : "Analyzing last student response...";
+  const factLabel = isHindi ? "तथ्य जाँच" : "Fact Check";
 
   return (
     <Draggable bounds="body" handle=".copilotDragHandle">
@@ -26,12 +30,12 @@ function CopilotWidget({
         {showCard ? (
           <section className="copilotCard">
             <header className="copilotDragHandle">
-              <strong>Cortex Copilot</strong>
+              <strong>{heading}</strong>
               <button type="button" onClick={onMinimize} aria-label="Minimize copilot">
                 -
               </button>
             </header>
-            <p className="copilotAnalysis">{data?.analysis || "Analyzing last student response..."}</p>
+            <p className="copilotAnalysis">{data?.analysis || thinkingLabel}</p>
             <div className="copilotSuggestionRow">
               {suggestions.map((item) => (
                 <button
@@ -46,7 +50,7 @@ function CopilotWidget({
             </div>
             {data?.fact_check && (
               <div className="copilotFact">
-                <span>Fact Check</span>
+                <span>{factLabel}</span>
                 <p>{data.fact_check}</p>
               </div>
             )}

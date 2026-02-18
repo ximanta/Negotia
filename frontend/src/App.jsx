@@ -13,6 +13,13 @@ const ACTIVATION_STEPS = [
   "Loading Psychological Profile...",
   "Entering the CloseWire...",
 ];
+const HINDI_ACTIVATION_STEPS = [
+  "ड्यूल एरीना तैयार हो रहा है...",
+  "नेगोशिएशन रिफ्लेक्स कैलिब्रेट हो रहे हैं...",
+  "पर्सोना डीएनए लोड हो रहा है...",
+  "मनोवैज्ञानिक प्रोफाइल विश्लेषित हो रही है...",
+  "क्लोजवायर में प्रवेश हो रहा है...",
+];
 const COMMITMENT_LABELS = {
   none: "No Commitment",
   soft_commitment: "Exploring Enrollment",
@@ -30,11 +37,12 @@ const PIPELINE_OPTIONS = [
 const ARCHETYPE_CARDS = [
   { id: "random", icon: "??", title: "Random Profile", profile: "Let CloseWire pick one profile at random.", accent: "#9aa6c8" },
   { id: "desperate_switcher", icon: "SW", title: "Desperate Switcher", profile: "Urgent career pivot, seeks fast outcomes.", accent: "#ff8f5c" },
-  { id: "skeptical_shopper", icon: "SK", title: "Skeptical Shopper", profile: "Needs proof, questions value and claims.", accent: "#f4c15d" },
   { id: "stagnant_pro", icon: "SP", title: "Stagnant Pro", profile: "Plateaued growth, wants clear progression.", accent: "#5ec7ff" },
   { id: "credential_hunter", icon: "CH", title: "Credential Hunter", profile: "Status-driven, prioritizes recognition signals.", accent: "#c38dff" },
   { id: "fomo_victim", icon: "FV", title: "FOMO Victim", profile: "Fear-driven urgency, reacts to momentum.", accent: "#ff6f95" },
   { id: "drifter", icon: "DR", title: "Drifter", profile: "Low clarity, needs structure and direction.", accent: "#74d9a4" },
+    { id: "skeptical_shopper", icon: "SK", title: "संदेहशील ग्राहक", profile: "हिंदी वक्ता: सबूत मांगता है, दावों पर सवाल उठाता है।", accent: "#f4c15d" },
+
 ];
 const DEFAULT_VOICE_PROFILE_MAPPING = {
   voice_preferences: {
@@ -193,6 +201,7 @@ function App() {
   const [passwordInput, setPasswordInput] = useState("");
   const [authError, setAuthError] = useState("");
   const [pendingStart, setPendingStart] = useState(false);
+  const [pendingDownloadReport, setPendingDownloadReport] = useState(false);
   const [pendingMode, setPendingMode] = useState("ai_vs_ai");
   const [pendingArchetype, setPendingArchetype] = useState("desperate_switcher");
   const [expandedContent, setExpandedContent] = useState(null);
@@ -396,6 +405,16 @@ function App() {
     if (!synth) return null;
     const voices = synth.getVoices() || [];
     if (!voices.length) return null;
+    const needsHindiVoice = isHumanMode && profileImageName === "skeptical_shopper";
+    if (needsHindiVoice) {
+      const hindiVoice = voices.find((voice) => /^hi-in/i.test(String(voice.lang || "")))
+        || voices.find((voice) => /hindi|hi-in/i.test(`${voice.name || ""} ${voice.lang || ""}`));
+      if (hindiVoice) {
+        selectedVoiceRef.current = hindiVoice;
+        selectedVoiceNameRef.current = `${hindiVoice.name} (${hindiVoice.lang})`;
+        return hindiVoice;
+      }
+    }
     const preferences = voiceProfileMapping?.voice_preferences || DEFAULT_VOICE_PROFILE_MAPPING.voice_preferences;
     const preferredNames = preferences[inferredGender] || preferences.neutral || [];
     for (const preference of preferredNames) {
@@ -428,7 +447,7 @@ function App() {
       ? `${selectedVoiceRef.current.name} (${selectedVoiceRef.current.lang})`
       : "";
     return selectedVoiceRef.current;
-  }, [inferredGender, voiceProfileMapping]);
+  }, [inferredGender, isHumanMode, profileImageName, voiceProfileMapping]);
 
   const orderedDrafts = useMemo(() => Object.values(drafts), [drafts]);
   const allCards = useMemo(
@@ -590,10 +609,16 @@ function App() {
     return "warning";
   }, [metrics?.sentiment_indicator]);
   const activationTitle = useMemo(() => {
+    if (selectedArchetype === "skeptical_shopper") {
+      if (negotiationMode === "human_vs_ai") return "ह्यूमन बनाम एजेंट ड्यूल सक्रिय";
+      if (negotiationMode === "agent_powered_human_vs_ai") return "एजेंट असिस्टेड ह्यूमन बनाम एजेंट ड्यूल सक्रिय";
+      return "एजेंट बनाम एजेंट ड्यूल सक्रिय";
+    }
     if (negotiationMode === "human_vs_ai") return "Human vs Agent Duel Activated";
     if (negotiationMode === "agent_powered_human_vs_ai") return "Agent Assisted Human vs Agent Duel Activated";
     return "Agent vs Agent Duel Activated";
-  }, [negotiationMode]);
+  }, [negotiationMode, selectedArchetype]);
+  const activationSteps = selectedArchetype === "skeptical_shopper" ? HINDI_ACTIVATION_STEPS : ACTIVATION_STEPS;
 
   useEffect(() => {
     if (!isAgentPoweredMode) {
@@ -992,6 +1017,9 @@ function App() {
     }
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(String(text).trim());
+    if (isHumanMode && profileImageName === "skeptical_shopper") {
+      utterance.lang = "hi-IN";
+    }
     const voice = selectSpeechVoice();
     if (voice) utterance.voice = voice;
     if (selectedVoiceNameRef.current) {
@@ -1103,7 +1131,9 @@ function App() {
     const recognition = new speechRecognitionCtor();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-IN";
+    const activeArchetypeForVoice = String(persona?.archetype_id || selectedArchetype || "").toLowerCase();
+    const shouldUseHindiRecognition = isHumanDrivenPipeline(modeRef.current) && activeArchetypeForVoice === "skeptical_shopper";
+    recognition.lang = shouldUseHindiRecognition ? "hi-IN" : "en-IN";
     recognition.onstart = () => {
       setMicPermissionStatus("granted");
       setMicState("listening");
@@ -1451,6 +1481,9 @@ function App() {
       if (pendingStart) {
         setPendingStart(false);
         await beginNegotiation(data.token, pendingMode, pendingArchetype);
+      } else if (pendingDownloadReport) {
+        setPendingDownloadReport(false);
+        await downloadReport(data.token);
       }
     } catch (error) {
       setAuthError(error.message || "Authentication failed");
@@ -1469,6 +1502,7 @@ function App() {
     setShowControlModal(false);
     setShowAuthModal(false);
     setPendingStart(false);
+    setPendingDownloadReport(false);
     setExpandedContent(null);
     startNewSimulation();
   };
@@ -1484,14 +1518,16 @@ function App() {
     startWebsocketNegotiation(sessionId, authToken, true, negotiationMode, selectedArchetype);
   };
 
-  const downloadReport = async () => {
+  const downloadReport = async (tokenOverride = null) => {
     if (!sessionId || !analysis) return;
+    const safeToken = typeof tokenOverride === "string" ? tokenOverride : "";
+    const effectiveToken = safeToken || authToken;
     const res = await fetch(`${BACKEND_URL}/generate-report`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         session_id: sessionId,
-        auth_token: authToken,
+        auth_token: effectiveToken,
         transcript: messages,
         analysis: {
           ...(analysis.judge || {}),
@@ -1503,6 +1539,14 @@ function App() {
       }),
     });
     if (!res.ok) {
+      if (res.status === 401) {
+        setPendingStart(false);
+        setPendingDownloadReport(true);
+        setShowAuthModal(true);
+        setAuthError("Session expired. Re-authenticate to download report.");
+        pushUiToast("Session expired. Please unlock again to download report.", "strategic", 3200);
+        return;
+      }
       pushUiToast("Failed to generate PDF report.");
       return;
     }
@@ -1555,7 +1599,7 @@ function App() {
               <span className="brandWire">WIRE</span>
             </h1>
           </button>
-          <p className="subtitle">Simulate | Compete | Evolve</p>
+          <p className="subtitle">Simulate | Compete | Reflect</p>
           <div className="inputRow launchRow">
             <input
               type="url"
@@ -1594,6 +1638,7 @@ function App() {
           state={copilotState}
           data={copilotData}
           pinnedSuggestion={copilotPinnedSuggestion}
+          isHindi={String(persona?.archetype_id || "").toLowerCase() === "skeptical_shopper"}
           onApplySuggestion={handleApplyCopilotSuggestion}
           onExpand={() => setCopilotState(copilotData ? "ready" : "thinking")}
           onMinimize={() => setCopilotState("minimized")}
@@ -1610,6 +1655,7 @@ function App() {
               onClick={() => {
                 setShowAuthModal(false);
                 setPendingStart(false);
+                setPendingDownloadReport(false);
                 setPendingMode("ai_vs_ai");
                 setPendingArchetype("desperate_switcher");
               }}
@@ -1728,10 +1774,10 @@ function App() {
                 <span className="brandWire">WIRE</span>
               </h1>
             </button>
-            <p className="subtitle">Simulate | Compete | Evolve</p>
+            <p className="subtitle">Simulate | Compete | Reflect</p>
             <h2>{activationTitle}</h2>
             <div className="activationSteps">
-              {ACTIVATION_STEPS.map((step, index) => (
+              {activationSteps.map((step, index) => (
                 <p key={step} className={index <= activationIndex ? "active" : ""}>
                   {step}
                 </p>
@@ -1744,7 +1790,7 @@ function App() {
           <div className="activationReflection" aria-hidden="true">
             <h2>{activationTitle}</h2>
             <div className="activationSteps">
-              {ACTIVATION_STEPS.map((step, index) => (
+              {activationSteps.map((step, index) => (
                 <p key={`ref-${step}`} className={index <= activationIndex ? "active" : ""}>
                   {step}
                 </p>
@@ -1756,16 +1802,14 @@ function App() {
 
       {(stage === "negotiating" || (stage === "completed" && !showReportDashboard)) && (
         <section className="arenaScene">
-          {isHumanMode && (
-            <div className="arenaBrandMark">
-              <button type="button" className="brandWordmarkBtn brandWordmarkBtnSm" onClick={closeArena} title="Close Arena">
-                <span className="brandWordmark brandWordmarkSm">
-                  <span className="brandClose">CLOSE</span>
-                  <span className="brandWire">WIRE</span>
-                </span>
-              </button>
-            </div>
-          )}
+          <div className="arenaBrandMark">
+            <button type="button" className="brandWordmarkBtn brandWordmarkBtnSm" onClick={closeArena} title="Close Arena">
+              <span className="brandWordmark brandWordmarkSm">
+                <span className="brandClose">CLOSE</span>
+                <span className="brandWire">WIRE</span>
+              </span>
+            </button>
+          </div>
           {stage === "completed" && !showReportDashboard && (
             <div className="arenaBottomActions">
               <button className="ghostBtn viewReportBtn" onClick={() => setShowReportDashboard(true)}>
@@ -1944,6 +1988,14 @@ function App() {
       {stage === "completed" && analysis && showReportDashboard && (
         <section className="resultOverlay">
           <div className="resultCard">
+            <div className="reportBrandMark">
+              <button type="button" className="brandWordmarkBtn brandWordmarkBtnSm" onClick={closeArena} title="Close Arena">
+                <span className="brandWordmark brandWordmarkSm">
+                  <span className="brandClose">CLOSE</span>
+                  <span className="brandWire">WIRE</span>
+                </span>
+              </button>
+            </div>
             <div className="resultScrollBody">
               <header className="outcomeSummaryCard">
                 <h2>{outcomeHeadline}</h2>
@@ -2113,7 +2165,7 @@ function App() {
               </article>
             </div>
             <div className="resultActions stickyActions">
-              <button className="downloadBtn" onClick={downloadReport}>
+              <button className="downloadBtn" onClick={() => downloadReport()}>
                 Download Report
               </button>
               <button className={`ghostBtn ${showRestartPulse ? "pulse" : ""}`} onClick={retrySimulation}>

@@ -31,9 +31,12 @@ from google.genai import types
 from pydantic import BaseModel, HttpUrl
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from typing_extensions import TypedDict
+from xml.sax.saxutils import escape as xml_escape
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("negotiation-arena")
@@ -127,7 +130,7 @@ ARCHETYPE_CONFIGS: Dict[str, Dict[str, str]] = {
         "core_drive": "Value for Money & Trust",
         "stress_trigger": "Sales talk or hidden terms",
         "emotional_response": "Suspicion, aggression, comparing with competitors",
-        "language_instruction": "Hinglish (Urban). Use code-mixing and emphasis words like bhaiya, scene kya hai, hidden charges.",
+        "language_instruction": "Natural Hindi only (Devanagari). No Hinglish or English code-mixing.",
     },
     "stagnant_pro": {
         "core_drive": "Efficiency, ROI & Status",
@@ -275,10 +278,92 @@ class NegotiationState(TypedDict):
 SESSION_STORE: Dict[str, Dict[str, Any]] = {}
 AUTH_TOKENS: Dict[str, float] = {}
 AUTH_FILE = Path(__file__).with_name("auth.json")
-TRACEABILITY_FILE = Path(__file__).with_name("conversation_traceability.json")
-DEBUG_TRACE_FILE = Path(__file__).with_name("negotiation_debug_trace.jsonl")
-HUMAN_DEBUG_TRACE_FILE = Path(__file__).with_name("human_vs_ai_negotiation_debug_trace.jonl")
-HUMAN_TRACEABILITY_FILE = Path(__file__).with_name("human_vs_ai_conversation_traceability.json")
+TRACE_OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "outputs" / "tracebility" / "runtime"
+TRACE_PIPELINE_DIRS: Dict[str, str] = {
+    "ai_vs_ai": "ai_vs_ai",
+    "human_vs_ai": "human_vs_ai",
+    "agent_powered_human_vs_ai": "agent_powered_human_vs_ai",
+}
+PDF_HINDI_FONT_NAME = "CloseWireHindi"
+PDF_HINDI_FONT_BOLD_NAME = "CloseWireHindiBold"
+
+
+def _pipeline_trace_dir(mode: str) -> Path:
+    normalized = str(mode or "ai_vs_ai").strip().lower()
+    folder = TRACE_PIPELINE_DIRS.get(normalized, "ai_vs_ai")
+    return TRACE_OUTPUT_ROOT / folder
+
+
+def _pipeline_debug_trace_file(mode: str) -> Path:
+    return _pipeline_trace_dir(mode) / "negotiation_debug_trace.jsonl"
+
+
+def _pipeline_traceability_file(mode: str) -> Path:
+    return _pipeline_trace_dir(mode) / "conversation_traceability.json"
+
+
+def _has_devanagari(value: str) -> bool:
+    text = str(value or "")
+    return any("\u0900" <= ch <= "\u097F" for ch in text)
+
+
+def _configure_pdf_fonts() -> Tuple[str, str]:
+    base_font = "Helvetica"
+    bold_font = "Helvetica-Bold"
+    candidate_paths = [
+        Path(__file__).resolve().parent / "assets" / "fonts" / "NotoSansDevanagari-Regular.ttf",
+        Path(__file__).resolve().parent / "assets" / "fonts" / "NotoSansDevanagari-Bold.ttf",
+        Path("/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf"),
+        Path("/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansDevanagari-Regular.ttf"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansDevanagari-Bold.ttf"),
+        Path("C:/Windows/Fonts/Nirmala.ttf"),
+        Path("C:/Windows/Fonts/mangal.ttf"),
+    ]
+    regular_path = None
+    bold_path = None
+    for candidate in candidate_paths:
+        lowered = candidate.name.lower()
+        if "bold" in lowered and bold_path is None and candidate.exists():
+            bold_path = candidate
+        if "bold" not in lowered and regular_path is None and candidate.exists():
+            regular_path = candidate
+    if not regular_path:
+        return base_font, bold_font
+    try:
+        pdfmetrics.registerFont(TTFont(PDF_HINDI_FONT_NAME, str(regular_path)))
+        if bold_path:
+            pdfmetrics.registerFont(TTFont(PDF_HINDI_FONT_BOLD_NAME, str(bold_path)))
+            return PDF_HINDI_FONT_NAME, PDF_HINDI_FONT_BOLD_NAME
+        return PDF_HINDI_FONT_NAME, PDF_HINDI_FONT_NAME
+    except Exception:
+        logger.exception("Failed to register Hindi PDF font. Falling back to Helvetica.")
+        return base_font, bold_font
+
+
+async def _run_post_session_jobs_safe(session_id: str, mode: str, trace_payload: Dict[str, Any]) -> None:
+    try:
+        from backend.rag.post_session_runner import run_post_session_jobs
+
+        result = await run_post_session_jobs(session_id=session_id, mode=mode, trace_payload=trace_payload)
+        _write_debug_trace(
+            "post_session_jobs_complete",
+            {
+                "mode": mode,
+                "session_id": session_id,
+                "result": _to_plain_json(result),
+            },
+        )
+    except Exception as exc:
+        _write_debug_trace(
+            "post_session_jobs_failed",
+            {
+                "mode": mode,
+                "session_id": session_id,
+                "error_type": type(exc).__name__,
+                "error": _truncate_trace_text(exc),
+            },
+        )
 
 class ClientStreamClosed(Exception):
     """Raised when the websocket client disconnects during streaming."""
@@ -349,21 +434,22 @@ def _write_debug_trace(event: str, payload: Dict[str, Any]) -> None:
     if not NEGOTIATION_DEBUG_TRACE:
         return
     mode = str(payload.get("mode", "ai_vs_ai")).strip().lower()
-    target_file = HUMAN_DEBUG_TRACE_FILE if mode in {"human_vs_ai", "agent_powered_human_vs_ai"} else DEBUG_TRACE_FILE
+    target_file = _pipeline_debug_trace_file(mode)
     entry = {
         "ts": datetime.now().isoformat(),
         "event": event,
         **payload,
     }
     try:
+        target_file.parent.mkdir(parents=True, exist_ok=True)
         with target_file.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(_to_plain_json(entry), ensure_ascii=False) + "\n")
     except Exception:
         logger.exception("Failed to write debug trace event=%s", event)
 
 
-def _emit_conversation_traceability(session_id: str, state: NegotiationState, analysis: Dict[str, Any]) -> None:
-    trace_payload = {
+def _build_traceability_payload(session_id: str, state: NegotiationState, analysis: Dict[str, Any]) -> Dict[str, Any]:
+    return {
         "generated_at": datetime.now().isoformat(),
         "session_id": session_id,
         "deal_status": state.get("deal_status"),
@@ -384,8 +470,13 @@ def _emit_conversation_traceability(session_id: str, state: NegotiationState, an
         "transcript": state.get("messages", []),
         "history_for_reporting": state.get("history_for_reporting", []),
     }
+
+
+def _emit_conversation_traceability(session_id: str, state: NegotiationState, analysis: Dict[str, Any]) -> None:
+    trace_payload = _build_traceability_payload(session_id, state, analysis)
     mode = str(state.get("mode", "ai_vs_ai")).strip().lower()
-    target_file = HUMAN_TRACEABILITY_FILE if mode in {"human_vs_ai", "agent_powered_human_vs_ai"} else TRACEABILITY_FILE
+    target_file = _pipeline_traceability_file(mode)
+    target_file.parent.mkdir(parents=True, exist_ok=True)
     target_file.write_text(json.dumps(trace_payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
@@ -938,15 +1029,29 @@ async def _generate_coaching_tips(
 ) -> Dict[str, Any]:
     mode = str(state.get("mode", "ai_vs_ai")).strip().lower()
     round_number = int(state.get("round", 1))
-    fallback = {
-        "analysis": "Primary concern is still unresolved.",
-        "suggestions": [
-            "Acknowledge concern first.",
-            "Probe one constraint.",
-            "Ask a closing question.",
-        ],
-        "fact_check": "Use one concrete programme fact relevant to the objection.",
-    }
+    archetype_id = str(state.get("persona", {}).get("archetype_id", "")).strip().lower()
+    is_hindi = archetype_id == "skeptical_shopper"
+    fallback = (
+        {
+            "analysis": "मुख्य चिंता अभी भी अनसुलझी है।",
+            "suggestions": [
+                "चिंता को मान्यता दें।",
+                "एक बाधा पूछें।",
+                "समापन प्रश्न पूछें।",
+            ],
+            "fact_check": "आपत्ति से जुड़ा एक ठोस कार्यक्रम तथ्य बताएं।",
+        }
+        if is_hindi
+        else {
+            "analysis": "Primary concern is still unresolved.",
+            "suggestions": [
+                "Acknowledge concern first.",
+                "Probe one constraint.",
+                "Ask a closing question.",
+            ],
+            "fact_check": "Use one concrete programme fact relevant to the objection.",
+        }
+    )
     transcript_tail = _trim_messages(state.get("messages", []), 8)
     program_snapshot = _student_program_snapshot(state.get("program", {}))
     last_student_text = str(last_student_msg.get("content", "")).strip()
@@ -977,6 +1082,9 @@ TASK:
    - Imperative verb only.
    - No softeners like "you should".
 3. Provide one fact_check line tied to the objection.
+4. Language:
+   - If prospect archetype is skeptical_shopper, return only Hindi (Devanagari).
+   - Otherwise return English.
 
 OUTPUT JSON:
 {{
@@ -1234,7 +1342,7 @@ def _generate_persona(program: ProgramSummary, forced_archetype_id: Optional[str
             k=1,
         )[0]
     archetype = ARCHETYPE_CONFIGS.get(archetype_id, ARCHETYPE_CONFIGS["desperate_switcher"])
-    language_style = "Hinglish" if archetype_id == "skeptical_shopper" else random.choice(
+    language_style = "Hindi" if archetype_id == "skeptical_shopper" else random.choice(
         ["Indian Academic English", "Corporate Indian English", "Formal Indian English", "Passive Indian English"]
     )
     prompt = f"""
@@ -1248,7 +1356,7 @@ Language instruction: {archetype['language_instruction']}
 
 Use realistic Indian context.
 Return learner gender explicitly as male/female/neutral.
-If archetype_id is skeptical_shopper, force language_style as Hinglish with code-mixing.
+If archetype_id is skeptical_shopper, force language_style as pure Hindi (Devanagari). No Hinglish.
 No profanity.
 PROGRAM:
 {json.dumps(program)}
@@ -1297,6 +1405,13 @@ PROGRAM:
         "communication_style": random.choice(["timid", "aggressive", "confused", "challenging"]),
         "common_phrases": ["Placement ka scene kya hai?", "Is this really worth it?", "Mera paisa waste toh nahi hoga?"],
     }
+    if archetype_id == "skeptical_shopper":
+        fallback["common_vocabulary"] = ["फीस", "प्लेसमेंट", "भरोसा", "करियर", "नौकरी", "परिणाम"]
+        fallback["common_phrases"] = [
+            "फीस इतनी ज़्यादा क्यों है?",
+            "प्लेसमेंट का भरोसा कैसे होगा?",
+            "इसका करियर पर असली असर क्या है?",
+        ]
     parsed = _call_function_json(
         client=client,
         model_name=negotiation_model_name,
@@ -1361,7 +1476,7 @@ PROGRAM:
     parsed["current_role"] = str(parsed.get("current_role") or fallback["current_role"])
     parsed["city_tier"] = "Tier-1" if str(parsed.get("city_tier")).strip() == "Tier-1" else "Tier-2"
     parsed["language_style"] = (
-        "Hinglish" if parsed["archetype_id"] == "skeptical_shopper" else str(parsed.get("language_style") or fallback["language_style"])
+        "Hindi" if parsed["archetype_id"] == "skeptical_shopper" else str(parsed.get("language_style") or fallback["language_style"])
     )
     parsed["common_vocabulary"] = [str(item) for item in (parsed.get("common_vocabulary") or fallback["common_vocabulary"])][:8]
     parsed["financial_anxiety"] = _clamp_score(parsed.get("financial_anxiety", fallback["financial_anxiety"]))
@@ -1426,6 +1541,20 @@ In this run:
 - Resolve the main objection earlier.
 - Improve emotional calibration.
 """
+    persona = state.get("persona", {})
+    archetype_id = str(persona.get("archetype_id", "")).strip().lower()
+    if archetype_id == "skeptical_shopper":
+        counsellor_language_rules = (
+            "LANGUAGE REQUIREMENT:\n"
+            "- Speak only in natural Hindi (Devanagari script).\n"
+            "- No Hinglish, no English code-mixing.\n"
+            "- This rule applies from the very first counsellor turn."
+        )
+    else:
+        counsellor_language_rules = (
+            "LANGUAGE REQUIREMENT:\n"
+            "- Use clear, professional English matching the active simulation style."
+        )
     return f"""
 ROLE: Senior Admissions Counsellor.
 
@@ -1443,6 +1572,7 @@ PROGRAM DATA:
 PRIOR TRANSCRIPT:
 {transcript}
 {retry_note}
+{counsellor_language_rules}
 
 STRATEGY REQUIREMENTS:
 - Clarify curriculum and modules.
@@ -1478,9 +1608,19 @@ def _build_student_prompt(state: NegotiationState) -> str:
     inner_state = state.get("student_inner_state", {})
     config = ARCHETYPE_CONFIGS.get(persona.get("archetype_id", "desperate_switcher"), ARCHETYPE_CONFIGS["desperate_switcher"])
     mode = str(state.get("mode", "ai_vs_ai")).strip().lower()
+    archetype_id = str(persona.get("archetype_id", "")).strip().lower()
     vocabulary = ", ".join(persona.get("common_vocabulary", []))
     program_snapshot = _student_program_snapshot(state["program"])
-    if mode in {"human_vs_ai", "agent_powered_human_vs_ai"}:
+    if archetype_id == "skeptical_shopper":
+        language_style = "Hindi"
+        language_instruction = "Respond only in natural Hindi (Devanagari script). No Hinglish or English phrases."
+        vocabulary = "फीस, प्लेसमेंट, नौकरी, भरोसा, रिटर्न ऑन इन्वेस्टमेंट, करियर ग्रोथ"
+        pipeline_language_fragment = (
+            "- Mandatory language rule: speak only in Hindi (Devanagari).\n"
+            "- Never use Hinglish/code-mix.\n"
+            "- If counsellor speaks English, still reply in Hindi."
+        )
+    elif mode in {"human_vs_ai", "agent_powered_human_vs_ai"}:
         language_style = "UK English"
         language_instruction = (
             "Use pure UK English only. No Hinglish, no Hindi words, and no code-mixing."
@@ -1493,7 +1633,7 @@ def _build_student_prompt(state: NegotiationState) -> str:
     else:
         language_style = str(persona.get("language_style") or "Indian English")
         language_instruction = str(config.get("language_instruction") or "Use clear Indian English.")
-        pipeline_language_fragment = "- If archetype is skeptical_shopper, code-mix Hinglish for emphasis."
+        pipeline_language_fragment = "- Keep language aligned with archetype profile."
     return f"""
 ROLE: You are {persona.get('name')}, a {persona.get('age')} year old {persona.get('current_role')}.
 ARCHETYPE: {persona.get('archetype_label')}
@@ -2289,7 +2429,10 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
                 persona = _to_plain_json(_generate_persona(program, forced_archetype_id=forced_archetype_id))
                 session["persona"] = persona
         if mode in {"human_vs_ai", "agent_powered_human_vs_ai"}:
-            persona["language_style"] = "UK English"
+            if str(persona.get("archetype_id", "")).strip().lower() == "skeptical_shopper":
+                persona["language_style"] = "Hindi"
+            else:
+                persona["language_style"] = "UK English"
 
         financials = _derive_financials(program, persona)
         last_run = session.get("last_run", {})
@@ -2556,6 +2699,14 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
         if background_tasks:
             await asyncio.gather(*background_tasks, return_exceptions=True)
         _emit_conversation_traceability(config.session_id, state, analysis)
+        trace_payload = _build_traceability_payload(config.session_id, state, analysis)
+        asyncio.create_task(
+            _run_post_session_jobs_safe(
+                session_id=config.session_id,
+                mode=mode,
+                trace_payload=trace_payload,
+            )
+        )
         logger.info("Session %s finished with %s", config.session_id, state["deal_status"])
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected")
@@ -2597,6 +2748,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     )
     styles = getSampleStyleSheet()
     story: List[Any] = []
+    body_font_name, heading_font_name = _configure_pdf_fonts()
 
     judge = payload.analysis or {}
     winner = str(judge.get("winner", "no-deal"))
@@ -2641,6 +2793,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     title_style = ParagraphStyle(
         "ReportTitle",
         parent=styles["Title"],
+        fontName=heading_font_name,
         fontSize=22,
         leading=26,
         textColor=colors.HexColor("#0B1A37"),
@@ -2649,6 +2802,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     subtitle_style = ParagraphStyle(
         "ReportSubTitle",
         parent=styles["Normal"],
+        fontName=body_font_name,
         fontSize=9,
         leading=12,
         textColor=colors.HexColor("#4A638F"),
@@ -2657,6 +2811,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     section_style = ParagraphStyle(
         "SectionHeading",
         parent=styles["Heading2"],
+        fontName=heading_font_name,
         fontSize=12,
         leading=14,
         textColor=colors.HexColor("#1D4A8C"),
@@ -2666,6 +2821,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     body_style = ParagraphStyle(
         "ReportBody",
         parent=styles["BodyText"],
+        fontName=body_font_name,
         fontSize=9.5,
         leading=13.5,
         textColor=colors.HexColor("#1C2F52"),
@@ -2673,6 +2829,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     meta_style = ParagraphStyle(
         "ReportMeta",
         parent=styles["BodyText"],
+        fontName=body_font_name,
         fontSize=8.8,
         leading=12,
         textColor=colors.HexColor("#4B6087"),
@@ -2683,15 +2840,27 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         fontSize=8.6,
         leading=12,
         textColor=colors.HexColor("#6A7386"),
-        fontName="Helvetica-Oblique",
+        fontName=body_font_name,
         leftIndent=10,
     )
+
+    def _paragraph_text(value: Any, allow_breaks: bool = False) -> str:
+        safe = xml_escape(str(value or ""))
+        return safe.replace("\n", "<br/>") if allow_breaks else safe
+
+    def _make_paragraph(value: Any, primary: ParagraphStyle, devanagari: Optional[ParagraphStyle] = None, allow_breaks: bool = False) -> Paragraph:
+        text = _paragraph_text(value, allow_breaks=allow_breaks)
+        style = primary
+        if devanagari and _has_devanagari(str(value or "")):
+            style = devanagari
+        return Paragraph(text, style)
 
     def card_table(rows: List[List[str]], col_widths: Optional[List[int]] = None) -> Table:
         table = Table(rows, colWidths=col_widths)
         table.setStyle(
             TableStyle(
                 [
+                    ("FONTNAME", (0, 0), (-1, -1), body_font_name),
                     ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F4F8FF")),
                     ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C1D3F2")),
                     ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D7E4FA")),
@@ -2706,17 +2875,17 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         return table
 
     def append_bullets(title: str, items: List[str], fallback_text: str) -> None:
-        story.append(Paragraph(title, section_style))
+        story.append(_make_paragraph(title, section_style))
         if not items:
-            story.append(Paragraph(fallback_text, body_style))
+            story.append(_make_paragraph(fallback_text, body_style))
             story.append(Spacer(1, 6))
             return
         for item in items:
-            story.append(Paragraph(f"- {str(item)}", body_style))
+            story.append(_make_paragraph(f"- {str(item)}", body_style))
         story.append(Spacer(1, 6))
 
-    story.append(Paragraph("Program Counsellor Report", title_style))
-    story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", subtitle_style))
+    story.append(_make_paragraph("Program Counsellor Report", title_style))
+    story.append(_make_paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", subtitle_style))
 
     summary_rows = [
         ["Outcome", winner],
@@ -2726,13 +2895,13 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         ["Enrollment Likelihood", f"{judge.get('enrollment_likelihood', 0)}%"],
         ["Trust Delta", str(judge.get("trust_delta", 0))],
     ]
-    story.append(Paragraph("Outcome Summary", section_style))
+    story.append(_make_paragraph("Outcome Summary", section_style))
     story.append(card_table(summary_rows, [130, 390]))
     story.append(Spacer(1, 8))
-    story.append(Paragraph(str(judge.get("why", "No summary available.")), body_style))
+    story.append(_make_paragraph(str(judge.get("why", "No summary available.")), body_style))
     story.append(Spacer(1, 10))
 
-    story.append(Paragraph("Persona and Context", section_style))
+    story.append(_make_paragraph("Persona and Context", section_style))
     persona_rows = [
         ["Student", str(persona.get("name", "Unknown"))],
         ["Persona Type", str(persona.get("persona_type", "n/a"))],
@@ -2742,13 +2911,13 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     ]
     story.append(card_table(persona_rows, [130, 390]))
     story.append(Spacer(1, 8))
-    story.append(Paragraph("Primary Unresolved Objection", section_style))
-    story.append(Paragraph(str(judge.get("primary_unresolved_objection", "Not specified")), body_style))
+    story.append(_make_paragraph("Primary Unresolved Objection", section_style))
+    story.append(_make_paragraph(str(judge.get("primary_unresolved_objection", "Not specified")), body_style))
     story.append(Spacer(1, 8))
 
     run_history = payload.analysis.get("run_history", []) if isinstance(payload.analysis, dict) else []
     if isinstance(run_history, list) and len(run_history) > 1:
-        story.append(Paragraph("Performance Progression", section_style))
+        story.append(_make_paragraph("Performance Progression", section_style))
         progression_rows = [["Run", "Score", "Delta vs Previous", "Delta vs Baseline"]]
         baseline_score = float(run_history[0].get("score", 0))
         previous_score = None
@@ -2762,9 +2931,10 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         progression_table.setStyle(
             TableStyle(
                 [
+                    ("FONTNAME", (0, 0), (-1, -1), body_font_name),
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DCEBFF")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#133A77")),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 0), (-1, 0), heading_font_name),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F7FAFF")),
                     ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#C9DCF7")),
                     ("ALIGN", (1, 1), (-1, -1), "CENTER"),
@@ -2788,7 +2958,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     )
 
     story.append(PageBreak())
-    story.append(Paragraph("Conversation Metrics Timeline", section_style))
+    story.append(_make_paragraph("Conversation Metrics Timeline", section_style))
     metric_events = judge.get("metric_events", [])
     if metric_events:
         metric_rows = [["Round", "Tone", "Event"]]
@@ -2804,9 +2974,10 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         metric_table.setStyle(
             TableStyle(
                 [
+                    ("FONTNAME", (0, 0), (-1, -1), body_font_name),
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E6EFFF")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#133A77")),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 0), (-1, 0), heading_font_name),
                     ("GRID", (0, 0), (-1, -1), 0.45, colors.HexColor("#C9DCF7")),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F9FBFF")),
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -2819,20 +2990,20 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         )
         story.append(metric_table)
     else:
-        story.append(Paragraph("No metric events captured.", body_style))
+        story.append(_make_paragraph("No metric events captured.", body_style))
     story.append(Spacer(1, 10))
 
-    story.append(Paragraph("Transcript", section_style))
+    story.append(_make_paragraph("Transcript", section_style))
     transcript_for_report = session_last_run.get("history_for_reporting") or payload.transcript
     for msg in transcript_for_report:
         agent = str(msg.get("agent", "")).upper() or "UNKNOWN"
         rnd = msg.get("round", "-")
-        content = str(msg.get("content", "")).replace("\n", "<br/>")
-        story.append(Paragraph(f"Round {rnd} - {agent}", meta_style))
+        content = str(msg.get("content", ""))
+        story.append(_make_paragraph(f"Round {rnd} - {agent}", meta_style))
         thought = str(msg.get("internal_thought", "")).strip()
         if thought and str(msg.get("agent", "")).lower() == "student":
-            story.append(Paragraph(f"Psychological Analysis: {thought}", thought_style))
-        story.append(Paragraph(content, body_style))
+            story.append(_make_paragraph(f"Psychological Analysis: {thought}", thought_style))
+        story.append(_make_paragraph(content, body_style, allow_breaks=True))
         story.append(Spacer(1, 6))
 
     doc.build(story)

@@ -591,6 +591,14 @@ textarea {
   pointer-events: auto;
 }
 
+.reportBrandMark {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  z-index: 12;
+  pointer-events: auto;
+}
+
 .arenaTopZone {
   flex: 0 0 auto;
   min-height: 0;
@@ -1984,6 +1992,7 @@ textarea {
   margin: 0;
   height: 100dvh;
   min-height: 100dvh;
+  position: relative;
   border-radius: 0;
   border: 0;
   background: linear-gradient(160deg, rgba(18, 34, 60, 0.95) 0%, rgba(8, 13, 30, 0.96) 100%);
@@ -1996,7 +2005,7 @@ textarea {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 18px 20px 12px;
+  padding: 52px 20px 12px;
 }
 
 .outcomeSummaryCard {
