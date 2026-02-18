@@ -919,6 +919,17 @@ def _pick_live_mode_archetype() -> str:
     return random.choice(["desperate_switcher", "skeptical_shopper"])
 
 
+def _resolve_selected_archetype(archetype_id: Optional[str]) -> Optional[str]:
+    raw = str(archetype_id or "").strip().lower()
+    if not raw:
+        return None
+    if raw == "random":
+        return random.choice(list(ARCHETYPE_CONFIGS.keys()))
+    if raw in ARCHETYPE_CONFIGS:
+        return raw
+    return None
+
+
 async def _generate_coaching_tips(
     client: genai.Client,
     model_name: str,
@@ -2234,9 +2245,7 @@ async def analyze_url(payload: AnalyzeUrlRequest) -> AnalyzeUrlResponse:
     url = str(payload.url)
     program, source = _analyze_program(url)
     program = _to_plain_json(program)
-    forced_archetype_id = str(payload.archetype_id or "").strip()
-    if forced_archetype_id not in ARCHETYPE_CONFIGS:
-        forced_archetype_id = None
+    forced_archetype_id = _resolve_selected_archetype(payload.archetype_id)
     persona = _generate_persona(program, forced_archetype_id=forced_archetype_id)
     persona = _to_plain_json(persona)
     session_id = str(uuid.uuid4())
@@ -2271,7 +2280,9 @@ async def negotiate_websocket(websocket: WebSocket) -> None:
         mode = str(config.mode or "ai_vs_ai").strip().lower()
         if mode not in {"ai_vs_ai", "human_vs_ai", "agent_powered_human_vs_ai"}:
             mode = "ai_vs_ai"
-        forced_archetype_id = str(config.archetype_id or "").strip()
+        forced_archetype_id = str(config.archetype_id or "").strip().lower()
+        if forced_archetype_id == "random":
+            forced_archetype_id = ""
         if forced_archetype_id in ARCHETYPE_CONFIGS:
             current_archetype = str(persona.get("archetype_id", "")).strip()
             if current_archetype != forced_archetype_id:

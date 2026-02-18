@@ -28,6 +28,7 @@ const PIPELINE_OPTIONS = [
   { id: "agent_powered_human_vs_ai", title: "Agent Powered Human vs Agent", subtitle: "Voice-first counsellor with live coach cues.", status: "active" },
 ];
 const ARCHETYPE_CARDS = [
+  { id: "random", icon: "??", title: "Random Profile", profile: "Let CloseWire pick one profile at random.", accent: "#9aa6c8" },
   { id: "desperate_switcher", icon: "SW", title: "Desperate Switcher", profile: "Urgent career pivot, seeks fast outcomes.", accent: "#ff8f5c" },
   { id: "skeptical_shopper", icon: "SK", title: "Skeptical Shopper", profile: "Needs proof, questions value and claims.", accent: "#f4c15d" },
   { id: "stagnant_pro", icon: "SP", title: "Stagnant Pro", profile: "Plateaued growth, wants clear progression.", accent: "#5ec7ff" },
