@@ -2748,7 +2748,9 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     )
     styles = getSampleStyleSheet()
     story: List[Any] = []
-    body_font_name, heading_font_name = _configure_pdf_fonts()
+    hindi_font_name, _ = _configure_pdf_fonts()
+    archetype_id = str(persona.get("archetype_id", "")).strip().lower()
+    use_hindi_transcript = archetype_id == "skeptical_shopper"
 
     judge = payload.analysis or {}
     winner = str(judge.get("winner", "no-deal"))
@@ -2793,7 +2795,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     title_style = ParagraphStyle(
         "ReportTitle",
         parent=styles["Title"],
-        fontName=heading_font_name,
+        fontName="Helvetica-Bold",
         fontSize=22,
         leading=26,
         textColor=colors.HexColor("#0B1A37"),
@@ -2802,7 +2804,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     subtitle_style = ParagraphStyle(
         "ReportSubTitle",
         parent=styles["Normal"],
-        fontName=body_font_name,
+        fontName="Helvetica",
         fontSize=9,
         leading=12,
         textColor=colors.HexColor("#4A638F"),
@@ -2811,7 +2813,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     section_style = ParagraphStyle(
         "SectionHeading",
         parent=styles["Heading2"],
-        fontName=heading_font_name,
+        fontName="Helvetica-Bold",
         fontSize=12,
         leading=14,
         textColor=colors.HexColor("#1D4A8C"),
@@ -2821,7 +2823,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     body_style = ParagraphStyle(
         "ReportBody",
         parent=styles["BodyText"],
-        fontName=body_font_name,
+        fontName="Helvetica",
         fontSize=9.5,
         leading=13.5,
         textColor=colors.HexColor("#1C2F52"),
@@ -2829,7 +2831,7 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
     meta_style = ParagraphStyle(
         "ReportMeta",
         parent=styles["BodyText"],
-        fontName=body_font_name,
+        fontName="Helvetica",
         fontSize=8.8,
         leading=12,
         textColor=colors.HexColor("#4B6087"),
@@ -2840,9 +2842,22 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         fontSize=8.6,
         leading=12,
         textColor=colors.HexColor("#6A7386"),
-        fontName=body_font_name,
+        fontName="Helvetica-Oblique",
         leftIndent=10,
     )
+    transcript_hindi_style: Optional[ParagraphStyle] = None
+    thought_hindi_style: Optional[ParagraphStyle] = None
+    if use_hindi_transcript and hindi_font_name != "Helvetica":
+        transcript_hindi_style = ParagraphStyle(
+            "TranscriptHindi",
+            parent=body_style,
+            fontName=hindi_font_name,
+        )
+        thought_hindi_style = ParagraphStyle(
+            "ThoughtHindi",
+            parent=thought_style,
+            fontName=hindi_font_name,
+        )
 
     def _paragraph_text(value: Any, allow_breaks: bool = False) -> str:
         safe = xml_escape(str(value or ""))
@@ -2860,7 +2875,6 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         table.setStyle(
             TableStyle(
                 [
-                    ("FONTNAME", (0, 0), (-1, -1), body_font_name),
                     ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F4F8FF")),
                     ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C1D3F2")),
                     ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D7E4FA")),
@@ -2931,10 +2945,9 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         progression_table.setStyle(
             TableStyle(
                 [
-                    ("FONTNAME", (0, 0), (-1, -1), body_font_name),
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DCEBFF")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#133A77")),
-                    ("FONTNAME", (0, 0), (-1, 0), heading_font_name),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F7FAFF")),
                     ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#C9DCF7")),
                     ("ALIGN", (1, 1), (-1, -1), "CENTER"),
@@ -2974,10 +2987,9 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         metric_table.setStyle(
             TableStyle(
                 [
-                    ("FONTNAME", (0, 0), (-1, -1), body_font_name),
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E6EFFF")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#133A77")),
-                    ("FONTNAME", (0, 0), (-1, 0), heading_font_name),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                     ("GRID", (0, 0), (-1, -1), 0.45, colors.HexColor("#C9DCF7")),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F9FBFF")),
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -3002,8 +3014,21 @@ async def generate_report(payload: ReportRequest) -> StreamingResponse:
         story.append(_make_paragraph(f"Round {rnd} - {agent}", meta_style))
         thought = str(msg.get("internal_thought", "")).strip()
         if thought and str(msg.get("agent", "")).lower() == "student":
-            story.append(_make_paragraph(f"Psychological Analysis: {thought}", thought_style))
-        story.append(_make_paragraph(content, body_style, allow_breaks=True))
+            story.append(
+                _make_paragraph(
+                    f"Psychological Analysis: {thought}",
+                    thought_style,
+                    devanagari=thought_hindi_style,
+                )
+            )
+        story.append(
+            _make_paragraph(
+                content,
+                body_style,
+                devanagari=transcript_hindi_style,
+                allow_breaks=True,
+            )
+        )
         story.append(Spacer(1, 6))
 
     doc.build(story)
