@@ -39,10 +39,10 @@ const ARCHETYPE_CARDS = [
   { id: "desperate_switcher", icon: "SW", title: "Desperate Switcher", profile: "Urgent career pivot, seeks fast outcomes.", accent: "#ff8f5c" },
   { id: "stagnant_pro", icon: "SP", title: "Stagnant Pro", profile: "Plateaued growth, wants clear progression.", accent: "#5ec7ff" },
   { id: "credential_hunter", icon: "CH", title: "Credential Hunter", profile: "Status-driven, prioritizes recognition signals.", accent: "#c38dff" },
+  { id: "intellectual_buyer", icon: "IB", title: "Intellectual Buyer", profile: "Dissects syllabus depth; demands technical specificity.", accent: "#6fd4ff" },
   { id: "fomo_victim", icon: "FV", title: "FOMO Victim", profile: "Fear-driven urgency, reacts to momentum.", accent: "#ff6f95" },
   { id: "drifter", icon: "DR", title: "Drifter", profile: "Low clarity, needs structure and direction.", accent: "#74d9a4" },
-    { id: "skeptical_shopper", icon: "SK", title: "संदेहशील ग्राहक", profile: "हिंदी वक्ता: सबूत मांगता है, दावों पर सवाल उठाता है।", accent: "#f4c15d" },
-
+  { id: "skeptical_shopper", icon: "SK", title: "Skeptical Shopper", profile: "Hindi speaker: asks for proof and challenges claims.", accent: "#f4c15d" },
 ];
 const DEFAULT_VOICE_PROFILE_MAPPING = {
   voice_preferences: {
@@ -55,6 +55,7 @@ const DEFAULT_VOICE_PROFILE_MAPPING = {
     skeptical_shopper: "female",
     stagnant_pro: "male",
     credential_hunter: "female",
+    intellectual_buyer: "male",
     fomo_victim: "male",
     drifter: "male",
   },

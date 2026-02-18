@@ -101,15 +101,6 @@ def get_client_and_models() -> Tuple[genai.Client, str, str]:
     return CLIENT, NEGOTIATION_MODEL_NAME, JUDGE_MODEL_NAME
 
 
-ARCHETYPE_WEIGHTS: List[Tuple[str, int]] = [
-    ("desperate_switcher", 35),
-    ("skeptical_shopper", 20),
-    ("stagnant_pro", 20),
-    ("credential_hunter", 10),
-    ("fomo_victim", 10),
-    ("drifter", 5),
-]
-
 ARCHETYPE_LABELS: Dict[str, str] = {
     "desperate_switcher": "Desperate Switcher",
     "skeptical_shopper": "Skeptical Shopper",
@@ -117,6 +108,7 @@ ARCHETYPE_LABELS: Dict[str, str] = {
     "credential_hunter": "Credential Hunter",
     "fomo_victim": "FOMO Victim",
     "drifter": "Drifter",
+    "intellectual_buyer": "Intellectual Buyer",
 }
 
 ARCHETYPE_CONFIGS: Dict[str, Dict[str, str]] = {
@@ -155,6 +147,22 @@ ARCHETYPE_CONFIGS: Dict[str, Dict[str, str]] = {
         "stress_trigger": "Foundational topics (Math/SQL) or long duration",
         "emotional_response": "Boredom, distraction, shallow impatience",
         "language_instruction": "Buzzword-heavy style with terms like ChatGPT, Prompt Engineering, Trending, Viral.",
+    },
+    "intellectual_buyer": {
+        "core_drive": "Subject Matter Mastery & Curriculum Depth",
+        "stress_trigger": (
+            "Vague outcomes, buzzwords without mechanism, skipped prerequisites, "
+            "or claims lacking technical proof and implementation detail"
+        ),
+        "emotional_response": (
+            "Analytical, probing, and exacting; challenges assumptions; "
+            "asks layered follow-ups until depth and boundaries are explicit"
+        ),
+        "language_instruction": (
+            "Technical, precise, and mechanism-first. Prefer 'how/which/why' questions. "
+            "Ask for specific tools, frameworks, architecture choices, trade-offs, "
+            "evaluation methodology, and expected depth by module."
+        ),
     },
 }
 
@@ -1359,11 +1367,7 @@ def _generate_persona(program: ProgramSummary, forced_archetype_id: Optional[str
     if forced_archetype_id and forced_archetype_id in ARCHETYPE_CONFIGS:
         archetype_id = forced_archetype_id
     else:
-        archetype_id = random.choices(
-            [item[0] for item in ARCHETYPE_WEIGHTS],
-            weights=[item[1] for item in ARCHETYPE_WEIGHTS],
-            k=1,
-        )[0]
+        archetype_id = random.choice(list(ARCHETYPE_CONFIGS.keys()))
     archetype = ARCHETYPE_CONFIGS.get(archetype_id, ARCHETYPE_CONFIGS["desperate_switcher"])
     language_style = "Hindi" if archetype_id == "skeptical_shopper" else random.choice(
         ["Indian Academic English", "Corporate Indian English", "Formal Indian English", "Passive Indian English"]
@@ -1598,17 +1602,23 @@ PRIOR TRANSCRIPT:
 {counsellor_language_rules}
 
 STRATEGY REQUIREMENTS:
-- Clarify curriculum and modules.
-- Explain workload realistically.
-- Address ROI concerns using data.
-- Handle discount requests ethically.
-- Offer EMI or scholarship framing when plausible.
-- Reduce affordability anxiety.
-- Build trust gradually.
-- Detect emotional state shifts.
-- Move toward commitment questions after objections resolved.
-- Do not assume personal background, pressure, finances, or fears unless the student explicitly states them in transcript.
-- If transcript is empty (first turn), start with neutral discovery questions before positioning.
+- First detect student intent from transcript (fee, placement, eligibility, curriculum, duration, financing, outcomes, comparison, trust-risk).
+- Answer the detected intent first and directly.
+- If the student asks a specific question, do NOT dump unrelated information.
+- Use exactly one concrete proof point (number, criterion, timeline, or policy) relevant to the asked intent.
+- Keep language conversational and crisp; avoid lecture-like tone.
+- Build trust gradually and reduce anxiety using facts, not hype.
+- Do not assume personal background, pressure, finances, or fears unless explicitly stated.
+- If transcript is empty (first turn), start with one neutral discovery question.
+
+ENGAGEMENT / SALES QUALITY RULE:
+- After answering, optionally add one high-value engagement nudge only when context supports it.
+- Good nudge examples:
+  - "Would you like a quick view of the capstone outcomes?"
+  - "Should I break down placement eligibility in 30 seconds?"
+  - "Do you want a fee + EMI snapshot for your case?"
+- Use at most one nudge per turn.
+- Do not nudge if user asked to be brief or is visibly frustrated.
 
 ADVANCED RULE:
 If primary objection remains unresolved, address it directly before attempting close.
@@ -1617,7 +1627,11 @@ OUTPUT FORMAT:
 Return only the spoken counsellor dialogue as plain text.
 Do not use XML tags, JSON, prefixes, or metadata.
 Quality constraints:
-- Keep response length as per user question and context. Prefarably crisp.
+- Keep response tight:
+  - 1 to 4 sentences
+  - target 60-90 words
+  - hard cap 120 words
+- For very specific user question, keep it to 1-2 focused sentences + optional 1 follow-up question.
 - Always end with a complete sentence.
 - Do not end mid-phrase (for example ending with words like "to", "and", "if this is", "aapki", etc.).
 """
