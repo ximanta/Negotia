@@ -1,50 +1,53 @@
 {
-  "generated_at": "2026-02-17T20:41:07.104592",
-  "session_id": "2753cd1c-6251-4dbf-8ccc-d2358c470da1",
+  "generated_at": "2026-02-18T10:13:18.617960",
+  "session_id": "2018decc-234e-49e5-9b0f-e2ccd5169c98",
   "deal_status": "failed",
   "round": 6,
   "max_rounds": 5,
   "persona": {
-    "skepticism": 5,
-    "gender": "male",
-    "ego_level": 3,
-    "archetype_id": "desperate_switcher",
     "common_vocabulary": [
-      "Sir/Ma'am",
-      "Batch",
-      "Passing out",
-      "Gap",
-      "Scope"
+      "ChatGPT",
+      "Prompt Engineering",
+      "Trending",
+      "Viral",
+      "GenAI",
+      "AI",
+      "next big thing",
+      "hustle"
     ],
-    "backstory": "Rohan completed his B.Tech in Computer Science from a regional engineering college. He started his career with a modest package in a Tier-2 city. For the past few years, he feels stuck in a repetitive job with limited growth. His peers from college are now getting into cutting-edge technologies like AI and earning significantly more, which makes him anxious about his future. He feels immense pressure from his family to secure a better, more stable job, especially as he approaches the typical age for marriage.",
-    "archetype_label": "Desperate Switcher",
-    "hidden_secret": "He secretly fears he is not smart enough to grasp complex AI concepts and that he might fail even if he invests in a new course. He worries about the financial strain of the course fees, especially if it does not lead to a better job.",
-    "age": 28,
-    "financial_anxiety": 9,
-    "current_role": "Junior Software Engineer",
-    "name": "Rohan Singh",
+    "age": 23,
+    "ego_level": 7,
+    "archetype_id": "fomo_victim",
+    "trigger_event": "A close friend recently landed a role as an 'AI Prompt Engineer' in a startup with a substantial salary hike, which intensified Aryan's pressure to immediately reskill in trending technologies.",
+    "skepticism": 3,
+    "confusion_level": 6,
+    "gender": "male",
+    "financial_anxiety": 8,
+    "current_role": "Junior Marketing Executive",
+    "hidden_secret": "He secretly harbors a fear that he lacks the foundational programming and mathematical skills required for these advanced technologies, but he's too embarrassed to admit it, always striving to appear well-informed and up-to-date.",
+    "misconception": "He firmly believes that mastering a few trending tools like ChatGPT or specific prompt engineering techniques will directly lead to a high-paying job, underestimating the critical importance of core programming concepts and a strong problem-solving base.",
+    "name": "Aryan Sharma",
     "language_style": "UK English",
-    "misconception": "He believes that once he gets a certificate in Agentic AI, he will be instantly highly employable and can demand a top-tier salary, without fully appreciating the continuous learning and hands-on application required. He thinks the certificate is a \"job guarantee card.\"",
-    "city_tier": "Tier-2",
-    "trigger_event": "His company recently announced a major restructuring and a hiring freeze, with strong rumors of layoffs affecting junior to mid-level employees whose skills are considered \"legacy.\" This has intensified his fear of job loss and made him realize he needs to \"reskill or perish.\"",
-    "confusion_level": 8,
-    "persona_type": "desperate_switcher",
+    "backstory": "Aryan, a recent graduate from a Tier-1 city, constantly scrolls through LinkedIn and Instagram, seeing his peers land 'hot' AI jobs with impressive packages. He feels a significant fear of missing out on the next big wave in technology and often feels left behind.",
+    "city_tier": "Tier-1",
+    "archetype_label": "FOMO Victim",
+    "persona_type": "fomo_victim",
     "background": "Prospective learner evaluating an AI upskilling path.",
-    "career_stage": "early",
+    "career_stage": "mid",
     "financial_sensitivity": "medium",
-    "risk_tolerance": "medium",
-    "emotional_tone": "skeptical",
+    "risk_tolerance": "low",
+    "emotional_tone": "anxious",
     "primary_objections": [
       "Placement credibility",
       "Fee value",
       "Difficulty for freshers",
       "Time commitment"
     ],
-    "walk_away_likelihood": 0.57,
-    "expected_roi_months": 10,
-    "affordability_concern_level": 74,
-    "willingness_to_invest_score": 62,
-    "communication_style": "aggressive",
+    "walk_away_likelihood": 0.53,
+    "expected_roi_months": 8,
+    "affordability_concern_level": 84,
+    "willingness_to_invest_score": 72,
+    "communication_style": "confused",
     "common_phrases": [
       "Placement ka scene kya hai?",
       "Is this really worth it?",
@@ -52,16 +55,17 @@
     ]
   },
   "program": {
-    "program_name": "Building Agentic AI Systems",
-    "program_fee_inr": "Program fees: INR 1,50,000 + GST. Booking fees: INR 1,500 + GST. Full upfront payment: INR 1,42,500 (inclusive of 5% concession). EMI option available at INR 24,750 per installment (after booking). Loan facility is also available."
+    "program_name": "Java: Object-Oriented Programming",
+    "program_fee_inr": "9,999 + 18% GST"
   },
   "student_inner_state": {
-    "sentiment": "frustrated",
-    "skepticism_level": 50,
-    "trust_score": 25,
+    "sentiment": "confused",
+    "skepticism_level": 40,
+    "trust_score": 30,
     "unresolved_concerns": [
+      "AI/GenAI relevance",
+      "Career Progression",
       "Job Guarantee",
-      "Placement Criteria Clarity",
       "Price"
     ]
   },
@@ -70,471 +74,477 @@
     "max_rounds": 5,
     "concession_count_counsellor": 0,
     "concession_count_student": 0,
-    "tone_escalation": 31,
-    "objection_intensity": 20,
-    "trust_index": 34,
-    "close_probability": 57,
+    "tone_escalation": 47,
+    "objection_intensity": 21,
+    "trust_index": 26,
+    "close_probability": 54,
     "sentiment_indicator": "negative",
     "retry_modifier": 0
   },
   "final_offers": {
-    "counsellor": 166950,
-    "student": 127200
+    "counsellor": 11652,
+    "student": 8878
   },
   "analysis": {
-    "trust_delta": -10,
-    "skill_recommendations": [
-      "Improve active listening to understand the student's core concerns.",
-      "Practice providing direct and unambiguous answers, especially for policy and guarantee-related questions.",
-      "Enhance product knowledge to confidently discuss all program details, including eligibility and placement terms.",
-      "Develop effective objection handling techniques to address concerns directly rather than deflecting.",
-      "Cultivate empathy to acknowledge and reassure students about their investment and career aspirations."
-    ],
-    "why": "The counsellor repeatedly failed to provide direct and clear answers to the student's core questions regarding placement guarantees, specifically the link between the 70% assessment score and the 95% placement success rate. Vague explanations and a deflective rhetorical question in the final round significantly eroded trust and increased student frustration, leaving key objections unresolved.",
-    "pivotal_moments": [
-      "Round 2: Student challenges the 95% placement figure, asking for eligibility conditions.",
-      "Round 3: Counsellor asks student where 70% criteria came from, indicating lack of program knowledge.",
-      "Round 5: Counsellor deflects the 70% policy question with a rhetorical question.",
-      "Round 5: Student directly expresses frustration, stating the question was not answered, solidifying the failure in objection handling."
-    ],
     "strengths": [
-      "Counsellor initially provided attractive placement rate and salary bracket.",
-      "Counsellor was present and engaged throughout the conversation."
+      "Counsellor acknowledged AI/GenAI trends in Round 4 by mentioning Spring AI and LLMs, attempting to connect Java to these areas.",
+      "Counsellor offered to connect the student with a program architect, showing an attempt to resolve the issue, even if it wasn't a direct answer."
     ],
+    "primary_unresolved_objection": "The student's primary and consistently reiterated objection is 'how the specific curriculum of *this* Java programme genuinely leads to direct career progression and actual placement outcomes in trending AI or GenAI roles, given that these topics are not explicitly detailed in the course modules.'",
     "winner": "student",
-    "negotiation_score": 30,
-    "mistakes": [
-      "Failed to directly and clearly address the student's core questions about placement guarantees and the 70% score.",
-      "Provided vague and ambiguous explanations.",
-      "Deflected a direct policy question with a rhetorical question in the final round.",
-      "Failed to adequately explain the 'Front Engineer' role.",
-      "Appeared unfamiliar with specific program eligibility details (70% score source)."
+    "pivotal_moments": [
+      "Round 1: Student clearly articulates interest in AI/GenAI and career progression/placement outcomes in that landscape.",
+      "Round 3: Student explicitly states they are 'still unclear' on the Java program's connection to AI/GenAI and reiterates their primary concern about direct career progression in those areas. This highlights the counsellor's initial failure to address the core issue.",
+      "Round 5: Counsellor offers redirection to a program architect, indicating an inability to provide the requested information. The student's rejection of this offer and continued insistence on direct clarification confirms the complete failure to resolve the primary objection."
     ],
-    "enrollment_likelihood": 25,
-    "primary_unresolved_objection": "The lack of clarity and guarantee regarding placement assistance for all learners, specifically how the 70% assessment score eligibility impacts the 95% placement success rate and the availability of interview opportunities.",
-    "commitment_signal": "none"
+    "why": "The student maintained their primary objection regarding the Java program's specific integration with AI/GenAI and direct career progression, which the counsellor failed to address directly throughout the conversation. The counsellor's answers were either too general, evasive, or ultimately led to an offer of redirection, which the student also pushed back on, indicating a complete lack of satisfaction.",
+    "negotiation_score": 30,
+    "skill_recommendations": [
+      "Active Listening and Objection Handling: Develop skills to accurately identify and directly address student's core objections early in the conversation.",
+      "Deep Product Knowledge: Acquire detailed knowledge of how program curricula specifically align with current industry trends and career paths, including concrete examples.",
+      "Tailored Communication: Practice customizing program benefits and information to directly match the specific interests and career aspirations of the prospective student.",
+      "Proactive Information Provision: Instead of waiting for repeated questions, proactively offer specific details and evidence (e.g., curriculum snippets, alumni testimonials in AI/GenAI) to address anticipated concerns."
+    ],
+    "mistakes": [
+      "Failed to actively listen and precisely identify the student's core objection in earlier rounds, leading to generic responses about placement rates rather than specific curriculum alignment with AI/GenAI.",
+      "Provided vague and unclear answers (e.g., Round 2 and parts of Round 4), which further confused the student.",
+      "Lacked specific product knowledge regarding how the Java program's curriculum *directly* equips students for AI/GenAI roles, despite the student's repeated requests for this detail.",
+      "Failed to tailor information to the student's specific interest in AI/GenAI career paths.",
+      "Resorting to redirection after multiple rounds of failing to answer the primary concern directly, which the student then rejected."
+    ],
+    "commitment_signal": "none",
+    "trust_delta": -10,
+    "enrollment_likelihood": 15
   },
   "transcript": [
     {
-      "id": "72d0268c-b4e3-4727-a3e6-bc352898bde2",
+      "id": "c5f62c2e-52e8-431d-b043-b62aa3d34e56",
       "round": 1,
       "agent": "counsellor",
-      "content": "hello Rohan and Samantha here so can you tell me what you are looking for",
+      "content": "so ok hello I am Samantha and hello Aryan I see you are looking for Java object on programming can you tell me what how I can help you what you are looking for  I am not touching",
       "techniques": [
-        "introduction",
-        "open-ended questioning"
+        "Greeting and Introduction",
+        "Acknowledgement of Client's Stated Purpose/Problem",
+        "Open-ended Questioning for Elaboration"
       ],
-      "strategic_intent": "gather initial information",
+      "strategic_intent": "Establish rapport, welcome the client, clarify their needs/goals, and encourage client disclosure to initiate the counselling process.",
       "confidence_score": 0,
-      "emotional_state": "welcoming",
+      "emotional_state": "engaged and welcoming",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:34:53.252552",
+      "timestamp": "2026-02-18T10:09:04.591773",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "0876aec8-0f0f-400d-8910-b7b14e4bcca3",
+      "id": "2b05091c-098c-472e-bb40-6fd8a5634603",
       "round": 1,
       "agent": "student",
-      "content": "Hello Samantha, thanks for reaching out. Well, I'm currently a Junior Software Engineer, and to be frank, I feel a bit stuck in my career. I'm looking for a programme that can genuinely help me transition into the more advanced AI roles I see my peers getting into. I really want to develop job-ready capabilities in something cutting-edge like Agentic AI. Ultimately, I'm hoping for a strong return on investment and solid placement outcomes, if that's something your programme offers.",
+      "content": "Right, well, I'm just exploring options, really. I've been seeing a lot of buzz around AI and GenAI lately, and I'm keen to understand how this Java programme would fit into that landscape. What kind of career progression and placement outcomes can one truly expect after completing it, especially in today's rapidly evolving tech market?",
       "techniques": [],
-      "strategic_intent": "To explain my current situation and primary motivation (career progression, job security, ROI) while subtly hinting at my unresolved concerns (placement outcomes, cost).",
+      "strategic_intent": "To steer the conversation towards trending technologies and career progression, expressing a subtle doubt about Java's immediate relevance to current \"buzz\" while also probing for concrete outcomes.",
       "confidence_score": 60,
-      "emotional_state": "curious",
+      "emotional_state": "skeptical",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:34:56.254400",
+      "timestamp": "2026-02-18T10:09:09.169553",
       "generation_mode": "stream"
     },
     {
-      "id": "1ef47396-a7e1-4a05-a51a-36731c541d58",
+      "id": "f3682486-20e7-454a-bd3f-b126e6a29f34",
       "round": 2,
       "agent": "counsellor",
-      "content": "okay so we have a placement cell and we have a record of over 95% placement of our students does it help s you",
+      "content": "Yadav program on entered include how you can you know Ambassador via spring AR you will be taught in this course",
       "techniques": [
-        "providing information",
-        "checking understanding",
-        "building credibility"
+        "Providing Information"
       ],
-      "strategic_intent": "to address student's concern about placement outcomes and highlight program benefits",
+      "strategic_intent": "To provide specific details about the program's content and learning outcomes.",
       "confidence_score": 90,
-      "emotional_state": "reassuring",
+      "emotional_state": "informative and direct",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:35:55.266892",
+      "timestamp": "2026-02-18T10:09:52.445592",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "fe1babeb-3361-4220-b961-f1435dd01338",
+      "id": "2b2820c7-b207-468a-88ab-c476393cd06d",
       "round": 2,
       "agent": "student",
-      "content": "That 95% placement figure sounds really impressive, Samantha. However, I'm trying to understand what that actually entails for a learner like me. The program details mention eligibility criteria like a 70% score and being an India resident, and that support includes up to three interview opportunities within 120 days. Does that 95% success rate apply to *all* enrolled students, or only those who meet the strict eligibility and activity criteria? And what kind of roles and salary packages are typically secured by those 95%? I'm keen to ensure this translates into a strong return on investment for my career transition.",
+      "content": "I'm afraid I didn't quite catch that last part. Could you perhaps clarify how this specific Java programme genuinely integrates with the current AI and GenAI landscape? My main concern is understanding the direct career progression and placement outcomes one can realistically expect, particularly in those trending areas, as I want to ensure I'm making a worthwhile investment in my future.",
       "techniques": [],
-      "strategic_intent": "Clarify placement claims and efficacy",
+      "strategic_intent": "Seek clarification, reiterate primary motivation and unresolved concerns about career progression/AI relevance after a confusing response.",
       "confidence_score": 60,
-      "emotional_state": "Skeptical but hopeful",
+      "emotional_state": "confused",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:36:03.297666",
-      "generation_mode": "structured_retry"
-    },
-    {
-      "id": "89a0f075-6c25-45d9-86b2-8a8096569dac",
-      "round": 3,
-      "agent": "counsellor",
-      "content": "so typically our students are eligible for industry roles like AI engineers from engineer engineers and also Rag Engineer with the salary bracket of you not 10 to 15 lakhs per annum and where did you get the 70% score eligibility criteria",
-      "techniques": [
-        "providing information",
-        "asking for clarification"
-      ],
-      "strategic_intent": "provide details on career outcomes and clarify eligibility criteria",
-      "confidence_score": 80,
-      "emotional_state": "informative and inquiring",
-      "internal_thought": "",
-      "updated_stats": {},
-      "updated_state": {},
-      "timestamp": "2026-02-17T20:37:25.133450",
-      "generation_mode": "human_shadow"
-    },
-    {
-      "id": "b2bcfe08-8394-463a-baaf-871e01d6e0eb",
-      "round": 3,
-      "agent": "student",
-      "content": "Thank you for clarifying the typical roles and salary bracket, Samantha. 10 to 15 lakhs sounds like a very strong return on investment, which is encouraging. Could you perhaps elaborate on what a \"Front Engineer\" entails in this context?\nRegarding the 70% score eligibility, I noted that directly from the programme details you sent over. Specifically, under \"placement support details,\" it states: \"Placement assistance is available for eligible learners (70% score, regular graduation degree, India resident).\" My query was really about whether the impressive 95% placement success rate applies to *all* enrolled students, or only those who meet these specific, strict eligibility and activity criteria, including the 70% score. I just want to ensure I fully understand the *placement outcomes* and what's genuinely guaranteed.",
-      "techniques": [],
-      "strategic_intent": "To reiterate my previous point about eligibility criteria, clarify a vague role title, and get more precise details about the 95% placement success rate in relation to the eligibility conditions, as I am concerned about job guarantee and return on investment.",
-      "confidence_score": 60,
-      "emotional_state": "vigilant",
-      "internal_thought": "",
-      "updated_stats": {},
-      "updated_state": {},
-      "timestamp": "2026-02-17T20:37:31.546493",
+      "timestamp": "2026-02-18T10:09:56.328120",
       "generation_mode": "stream"
     },
     {
-      "id": "7e776d1b-6c2e-4d45-b724-d1bc884f7d94",
-      "round": 4,
+      "id": "94a6ea79-2290-420a-b44d-43b9ffb50f98",
+      "round": 3,
       "agent": "counsellor",
-      "content": "yeah so already is not strictly but we try to put in place that all over learners scores at the minimum 70% and what is quickly required as a prerequisite you have to be a Indian resident and also have positive graduation from recognize University",
+      "content": "we are very high qualified placement team with over you know 95% placement with our enrol companies premium companies like Wipro and Cognizant so once you complete the course your placement cell will help you to get you placed in a premium company",
       "techniques": [
-        "providing information",
-        "clarifying information"
+        "Providing Information",
+        "Addressing Concerns/Reassurance",
+        "Building Credibility/Trust"
       ],
-      "strategic_intent": "clarify eligibility criteria and prerequisites for placement",
+      "strategic_intent": "To reassure the student about career prospects and placement success by highlighting the high placement rate and associations with premium companies, thereby addressing their concerns about career progression and making the course seem like a worthwhile investment.",
       "confidence_score": 90,
-      "emotional_state": "informative",
+      "emotional_state": "confident and reassuring",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:39:03.822997",
+      "timestamp": "2026-02-18T10:10:51.811896",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "d7d85804-bbd3-49b1-a742-01e33e0c250d",
-      "round": 4,
+      "id": "6bb5179c-3809-4a1b-90e5-4b7d99578fe2",
+      "round": 3,
       "agent": "student",
-      "content": "Right, I understand about being an Indian resident and having a recognised degree. But, Samantha, my core concern here is still about the 70% score and how it relates to the 95% placement success rate. You mentioned it's \"not strictly\" required, but that you \"try to put in place\" that learners achieve it. Could you please clarify this for me directly? If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need to understand what's genuinely guaranteed regarding *placement outcomes* for every learner, not just those who hit specific internal targets.\nAnd, if you wouldn't mind, could you please elaborate on what a \"Front Engineer\" role typically involves? I'm trying to get a clear picture of the specific career progression this programme offers.",
+      "content": "I appreciate the information about your placement team and their success rate, but I'm still unclear on how this specific Java programme genuinely connects with the *current* AI and GenAI landscape. My primary concern remains the direct career progression and placement outcomes specifically within those trending areas. Can you provide more detail on how Java skills from this course lead to roles in AI or GenAI?",
       "techniques": [],
-      "strategic_intent": "seeking clarification on placement eligibility and role definition, reiterating unresolved concerns due to vague answers",
+      "strategic_intent": "reiterate core concern about AI/GenAI relevance and specific career progression within that domain, as counsellor's response was generic",
       "confidence_score": 60,
-      "emotional_state": "frustrated",
+      "emotional_state": "confused",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:39:08.881228",
+      "timestamp": "2026-02-18T10:10:55.832332",
       "generation_mode": "stream"
     },
     {
-      "id": "be0fa545-e90a-472f-b9b3-88f644b90e20",
+      "id": "fa778682-35a4-4cd1-a3da-ad66e41ea2bb",
+      "round": 4,
+      "agent": "counsellor",
+      "content": "okay so Java is you know the ecosystem is here towards creating AI agents and jni Java along with spring boot provides spring AI where you can develop applications that use LLM model does Rag and find tuning so this is out of program and I will see you to the current",
+      "techniques": [
+        "Providing Information",
+        "Clarification/Elaboration"
+      ],
+      "strategic_intent": "To directly address the student's repeated query by explaining the program's relevance to AI/GenAI, providing specific technical examples of how Java is used in these areas.",
+      "confidence_score": 90,
+      "emotional_state": "informative and clarifying",
+      "internal_thought": "",
+      "updated_stats": {},
+      "updated_state": {},
+      "timestamp": "2026-02-18T10:11:59.452543",
+      "generation_mode": "human_shadow"
+    },
+    {
+      "id": "578adf40-ac06-4df7-8f8d-251fb01479bc",
+      "round": 4,
+      "agent": "student",
+      "content": "I appreciate you mentioning Spring AI and LLMs, but I'm trying to connect the dots more clearly. Given this specific Java programme's curriculum, how precisely does it equip me for those trending AI or GenAI roles you just mentioned? My main concern is still the direct career progression and actual placement outcomes specifically within those advanced areas, as I don't see those topics explicitly detailed in the course modules.",
+      "techniques": [],
+      "strategic_intent": "Clarify direct career path to AI/GenAI from *this specific curriculum*, questioning the explicit mention of advanced AI topics in the course modules.",
+      "confidence_score": 60,
+      "emotional_state": "confused",
+      "internal_thought": "",
+      "updated_stats": {},
+      "updated_state": {},
+      "timestamp": "2026-02-18T10:12:07.200653",
+      "generation_mode": "stream"
+    },
+    {
+      "id": "82af2b90-eb47-4870-a15c-78c163876fd4",
       "round": 5,
       "agent": "counsellor",
-      "content": "engineer typically refers to front and engineer and regarding the 70% let me ask you back on a question right so if you don't score 70% about placement is in team will definitely you know put you in three interview bracket but if you have not put in effort introduce program and score very low do you think you will be able to crackers interview",
+      "content": "okay so will it help Aryan if I redirect you to our you know the program architect who is a domain expert and can help you guide you more precisely",
       "techniques": [
-        "providing information",
-        "clarifying information",
-        "setting expectations",
-        "asking rhetorical questions"
+        "Redirection/Referral",
+        "Offering Assistance"
       ],
-      "strategic_intent": "to clarify the relationship between the 70% score, effort, and interview opportunities, and to partially define 'Front Engineer', while managing expectations about guaranteed success without effort.",
+      "strategic_intent": "To address the student's persistent and detailed questions by referring them to a domain expert (program architect) who can provide more precise and in-depth guidance on AI/GenAI relevance and career progression.",
       "confidence_score": 85,
-      "emotional_state": "direct and instructive",
+      "emotional_state": "helpful and proactive",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:40:44.378075",
+      "timestamp": "2026-02-18T10:13:00.233224",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "a257dbd2-27ab-4576-b454-6f679ca6083c",
+      "id": "5123e44b-0b1c-469f-9a9b-af98d1958518",
       "round": 5,
       "agent": "student",
-      "content": "Samantha, with all due respect, that wasn't an answer to my question. You said \"Front Engineer\" refers to \"front and engineer,\" which doesn't clarify the role at all for career progression. Could you please give me a proper job description or typical responsibilities for a \"Front Engineer\" in the context of this programme? I need to understand the actual roles.\nAnd regarding the 70% score, you haven't actually clarified the policy. You asked *me* if I think I'd crack an interview if I didn't score 70%, which is a different matter entirely. My question is about the *programme's* guarantee. If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need a clear, direct answer on what the actual *placement outcomes* are for all learners, regardless of whether they hit that internal 70% target. Is the 95% figure contingent on that 70% score?",
+      "content": "I appreciate the offer to connect with a programme architect, but I was hoping you could clarify this directly. My main concern is still understanding how the specific curriculum of *this* Java programme genuinely leads to direct career progression and actual placement outcomes in those trending AI or GenAI roles you mentioned. I need to ensure the programme structure directly aligns with those opportunities.",
       "techniques": [],
-      "strategic_intent": "seeking clarification and reassurance on specific placement guarantees, pushing back against deflection",
+      "strategic_intent": "Seek specific curriculum-to-career alignment for trending roles.",
       "confidence_score": 60,
-      "emotional_state": "frustrated",
+      "emotional_state": "confused",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:40:51.521204",
+      "timestamp": "2026-02-18T10:13:04.006888",
       "generation_mode": "stream"
     }
   ],
   "history_for_reporting": [
     {
-      "id": "72d0268c-b4e3-4727-a3e6-bc352898bde2",
+      "id": "c5f62c2e-52e8-431d-b043-b62aa3d34e56",
       "round": 1,
       "agent": "counsellor",
-      "content": "hello Rohan and Samantha here so can you tell me what you are looking for",
+      "content": "so ok hello I am Samantha and hello Aryan I see you are looking for Java object on programming can you tell me what how I can help you what you are looking for  I am not touching",
       "techniques": [
-        "introduction",
-        "open-ended questioning"
+        "Greeting and Introduction",
+        "Acknowledgement of Client's Stated Purpose/Problem",
+        "Open-ended Questioning for Elaboration"
       ],
-      "strategic_intent": "gather initial information",
+      "strategic_intent": "Establish rapport, welcome the client, clarify their needs/goals, and encourage client disclosure to initiate the counselling process.",
       "confidence_score": 0,
-      "emotional_state": "welcoming",
+      "emotional_state": "engaged and welcoming",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:34:53.252552",
+      "timestamp": "2026-02-18T10:09:04.591773",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "0876aec8-0f0f-400d-8910-b7b14e4bcca3",
+      "id": "2b05091c-098c-472e-bb40-6fd8a5634603",
       "round": 1,
       "agent": "student",
-      "content": "Hello Samantha, thanks for reaching out. Well, I'm currently a Junior Software Engineer, and to be frank, I feel a bit stuck in my career. I'm looking for a programme that can genuinely help me transition into the more advanced AI roles I see my peers getting into. I really want to develop job-ready capabilities in something cutting-edge like Agentic AI. Ultimately, I'm hoping for a strong return on investment and solid placement outcomes, if that's something your programme offers.",
+      "content": "Right, well, I'm just exploring options, really. I've been seeing a lot of buzz around AI and GenAI lately, and I'm keen to understand how this Java programme would fit into that landscape. What kind of career progression and placement outcomes can one truly expect after completing it, especially in today's rapidly evolving tech market?",
       "techniques": [],
-      "strategic_intent": "To explain my current situation and primary motivation (career progression, job security, ROI) while subtly hinting at my unresolved concerns (placement outcomes, cost).",
+      "strategic_intent": "To steer the conversation towards trending technologies and career progression, expressing a subtle doubt about Java's immediate relevance to current \"buzz\" while also probing for concrete outcomes.",
       "confidence_score": 60,
-      "emotional_state": "curious",
-      "internal_thought": "Right, so they've just asked what I'm looking for. I need to explain my situation, why I'm here, and what I expect from a programme like this. I'm feeling a bit stuck in my current job and really want to move into something better, something with actual career progression. I'm hoping this Agentic AI thing is the key. I need to mention job prospects and a good return on investment, that's really important for me. Price is a huge worry too, but I can't just blurt that out yet. Focus on the career first.",
+      "emotional_state": "skeptical",
+      "internal_thought": "Right, \"Java object on programming,\" she says. She's clearly just reading off a list or something. She hasn't even bothered to ask why I'm looking at *this* specific program, or what my career goals are. I'm here because I'm trying to figure out how to jump on the next big tech wave, like all my mates are doing with their fancy AI jobs. Java sounds a bit... well, not exactly \"trending AI\" in the way I'm thinking. This feels like foundational stuff, which is a bit of a turn-off. I need to make sure whatever I do has a strong return on investment and quick career progression, not just some long, theoretical slog. I'm keen to get ahead, not get bogged down.",
       "updated_stats": {
-        "sentiment": "curious",
-        "skepticism_level": 5,
-        "trust_score": 54,
+        "sentiment": "skeptical",
+        "skepticism_level": 10,
+        "trust_score": 50,
         "unresolved_concerns": [
           "Price",
           "Job Guarantee"
         ]
       },
       "updated_state": {
-        "sentiment": "curious",
-        "skepticism_level": 5,
-        "trust_score": 54,
+        "sentiment": "skeptical",
+        "skepticism_level": 10,
+        "trust_score": 50,
         "unresolved_concerns": [
           "Price",
           "Job Guarantee"
         ]
       },
-      "timestamp": "2026-02-17T20:34:56.254400",
+      "timestamp": "2026-02-18T10:09:09.169553",
       "generation_mode": "stream"
     },
     {
-      "id": "1ef47396-a7e1-4a05-a51a-36731c541d58",
+      "id": "f3682486-20e7-454a-bd3f-b126e6a29f34",
       "round": 2,
       "agent": "counsellor",
-      "content": "okay so we have a placement cell and we have a record of over 95% placement of our students does it help s you",
+      "content": "Yadav program on entered include how you can you know Ambassador via spring AR you will be taught in this course",
       "techniques": [
-        "providing information",
-        "checking understanding",
-        "building credibility"
+        "Providing Information"
       ],
-      "strategic_intent": "to address student's concern about placement outcomes and highlight program benefits",
+      "strategic_intent": "To provide specific details about the program's content and learning outcomes.",
       "confidence_score": 90,
-      "emotional_state": "reassuring",
+      "emotional_state": "informative and direct",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:35:55.266892",
+      "timestamp": "2026-02-18T10:09:52.445592",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "fe1babeb-3361-4220-b961-f1435dd01338",
+      "id": "2b2820c7-b207-468a-88ab-c476393cd06d",
       "round": 2,
       "agent": "student",
-      "content": "That 95% placement figure sounds really impressive, Samantha. However, I'm trying to understand what that actually entails for a learner like me. The program details mention eligibility criteria like a 70% score and being an India resident, and that support includes up to three interview opportunities within 120 days. Does that 95% success rate apply to *all* enrolled students, or only those who meet the strict eligibility and activity criteria? And what kind of roles and salary packages are typically secured by those 95%? I'm keen to ensure this translates into a strong return on investment for my career transition.",
+      "content": "I'm afraid I didn't quite catch that last part. Could you perhaps clarify how this specific Java programme genuinely integrates with the current AI and GenAI landscape? My main concern is understanding the direct career progression and placement outcomes one can realistically expect, particularly in those trending areas, as I want to ensure I'm making a worthwhile investment in my future.",
       "techniques": [],
-      "strategic_intent": "Clarify placement claims and efficacy",
+      "strategic_intent": "Seek clarification, reiterate primary motivation and unresolved concerns about career progression/AI relevance after a confusing response.",
       "confidence_score": 60,
-      "emotional_state": "Skeptical but hopeful",
-      "internal_thought": "The 95% placement claim seems very high, especially given the eligibility conditions and limited interview opportunities mentioned in the program details. I need to understand the true scope and impact of this figure on individual learners' job prospects and if it aligns with my goal for a strong return on investment and transition to advanced AI roles.",
-      "updated_stats": {
-        "sentiment": "curious",
-        "skepticism_level": 5,
-        "trust_score": 54,
-        "unresolved_concerns": [
-          "Job Guarantee",
-          "Price"
-        ]
-      },
-      "updated_state": {
-        "sentiment": "curious",
-        "skepticism_level": 5,
-        "trust_score": 54,
-        "unresolved_concerns": [
-          "Job Guarantee",
-          "Price"
-        ]
-      },
-      "timestamp": "2026-02-17T20:36:03.297666",
-      "generation_mode": "structured_retry"
-    },
-    {
-      "id": "89a0f075-6c25-45d9-86b2-8a8096569dac",
-      "round": 3,
-      "agent": "counsellor",
-      "content": "so typically our students are eligible for industry roles like AI engineers from engineer engineers and also Rag Engineer with the salary bracket of you not 10 to 15 lakhs per annum and where did you get the 70% score eligibility criteria",
-      "techniques": [
-        "providing information",
-        "asking for clarification"
-      ],
-      "strategic_intent": "provide details on career outcomes and clarify eligibility criteria",
-      "confidence_score": 80,
-      "emotional_state": "informative and inquiring",
-      "internal_thought": "",
-      "updated_stats": {},
-      "updated_state": {},
-      "timestamp": "2026-02-17T20:37:25.133450",
-      "generation_mode": "human_shadow"
-    },
-    {
-      "id": "b2bcfe08-8394-463a-baaf-871e01d6e0eb",
-      "round": 3,
-      "agent": "student",
-      "content": "Thank you for clarifying the typical roles and salary bracket, Samantha. 10 to 15 lakhs sounds like a very strong return on investment, which is encouraging. Could you perhaps elaborate on what a \"Front Engineer\" entails in this context?\nRegarding the 70% score eligibility, I noted that directly from the programme details you sent over. Specifically, under \"placement support details,\" it states: \"Placement assistance is available for eligible learners (70% score, regular graduation degree, India resident).\" My query was really about whether the impressive 95% placement success rate applies to *all* enrolled students, or only those who meet these specific, strict eligibility and activity criteria, including the 70% score. I just want to ensure I fully understand the *placement outcomes* and what's genuinely guaranteed.",
-      "techniques": [],
-      "strategic_intent": "To reiterate my previous point about eligibility criteria, clarify a vague role title, and get more precise details about the 95% placement success rate in relation to the eligibility conditions, as I am concerned about job guarantee and return on investment.",
-      "confidence_score": 60,
-      "emotional_state": "vigilant",
-      "internal_thought": "Right, the salary figures sound promising, 10 to 15 lakhs is definitely what I'm aiming for. That's a significant jump from my current package. The roles like AI Engineer and RAG Engineer also align with what I'm looking for. But \"Front Engineer\"? Is that like a frontend developer, or something specific to AI? I need to clarify that.\n\nAnd honestly, I'm a bit miffed. I explicitly mentioned the 70% score criteria for placement eligibility directly from the programme details, and now they're asking where I got it from? Did they even read what I said? It makes me question how much attention they're paying. This is about *my career progression* and *return on investment*, so I need precise answers, not to be questioned about information *they've* provided. It adds to my worry that there might be hidden catches or that they're not fully across their own terms. I need to gently but firmly point out where I got that information and get proper clarification on the placement guarantee. My primary concern about job security is still very much active.",
-      "updated_stats": {
-        "sentiment": "vigilant",
-        "skepticism_level": 15,
-        "trust_score": 50,
-        "unresolved_concerns": [
-          "Job Guarantee",
-          "Price"
-        ]
-      },
-      "updated_state": {
-        "sentiment": "vigilant",
-        "skepticism_level": 15,
-        "trust_score": 50,
-        "unresolved_concerns": [
-          "Job Guarantee",
-          "Price"
-        ]
-      },
-      "timestamp": "2026-02-17T20:37:31.546493",
-      "generation_mode": "stream"
-    },
-    {
-      "id": "7e776d1b-6c2e-4d45-b724-d1bc884f7d94",
-      "round": 4,
-      "agent": "counsellor",
-      "content": "yeah so already is not strictly but we try to put in place that all over learners scores at the minimum 70% and what is quickly required as a prerequisite you have to be a Indian resident and also have positive graduation from recognize University",
-      "techniques": [
-        "providing information",
-        "clarifying information"
-      ],
-      "strategic_intent": "clarify eligibility criteria and prerequisites for placement",
-      "confidence_score": 90,
-      "emotional_state": "informative",
-      "internal_thought": "",
-      "updated_stats": {},
-      "updated_state": {},
-      "timestamp": "2026-02-17T20:39:03.822997",
-      "generation_mode": "human_shadow"
-    },
-    {
-      "id": "d7d85804-bbd3-49b1-a742-01e33e0c250d",
-      "round": 4,
-      "agent": "student",
-      "content": "Right, I understand about being an Indian resident and having a recognised degree. But, Samantha, my core concern here is still about the 70% score and how it relates to the 95% placement success rate. You mentioned it's \"not strictly\" required, but that you \"try to put in place\" that learners achieve it. Could you please clarify this for me directly? If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need to understand what's genuinely guaranteed regarding *placement outcomes* for every learner, not just those who hit specific internal targets.\nAnd, if you wouldn't mind, could you please elaborate on what a \"Front Engineer\" role typically involves? I'm trying to get a clear picture of the specific career progression this programme offers.",
-      "techniques": [],
-      "strategic_intent": "seeking clarification on placement eligibility and role definition, reiterating unresolved concerns due to vague answers",
-      "confidence_score": 60,
-      "emotional_state": "frustrated",
-      "internal_thought": "This is still so confusing. \"Not strictly\" but \"we try to put in place\"? What does that even mean? So, if I don't get 70%, does the 95% placement rate still apply to me or not? They're dancing around the question. And they still haven't explained what a \"Front Engineer\" is. My primary motivation is job security and a clear path, and this vagueness just makes me panic. I'm putting a lot of money and time into this; I need concrete answers, not 'we try to put in place'. What if I don't achieve 70%? Does that mean I'm essentially excluded from the placement support that the 95% figure is based on? This feels like a huge risk. I need to be more direct. I'm worried about wasting my money if the placement support isn't genuinely for me.",
+      "emotional_state": "confused",
+      "internal_thought": "What on earth did they just say? \"Yadav program on entered include how you can you know Ambassador via spring AR\"? That makes absolutely no sense. Are they even listening to me? I asked about AI and GenAI and career progression, not whatever that garbled mess was. This is exactly what I'm afraid of – these programmes just teaching old stuff and trying to shoehorn it into the \"new tech\" conversation. I need them to be clearer and actually address my points. I'm feeling even more skeptical now. This isn't building any trust at all. I have no idea how this Java programme relates to AI or high-paying jobs if they can't even articulate it properly. And my job guarantee and price concerns are still completely untouched.",
       "updated_stats": {
         "sentiment": "skeptical",
-        "skepticism_level": 25,
+        "skepticism_level": 20,
         "trust_score": 40,
         "unresolved_concerns": [
           "Job Guarantee",
           "Price",
-          "Placement Criteria Clarity"
+          "Career Progression",
+          "AI/GenAI relevance"
         ]
       },
       "updated_state": {
         "sentiment": "skeptical",
-        "skepticism_level": 25,
+        "skepticism_level": 20,
         "trust_score": 40,
         "unresolved_concerns": [
           "Job Guarantee",
           "Price",
-          "Placement Criteria Clarity"
+          "Career Progression",
+          "AI/GenAI relevance"
         ]
       },
-      "timestamp": "2026-02-17T20:39:08.881228",
+      "timestamp": "2026-02-18T10:09:56.328120",
       "generation_mode": "stream"
     },
     {
-      "id": "be0fa545-e90a-472f-b9b3-88f644b90e20",
+      "id": "94a6ea79-2290-420a-b44d-43b9ffb50f98",
+      "round": 3,
+      "agent": "counsellor",
+      "content": "we are very high qualified placement team with over you know 95% placement with our enrol companies premium companies like Wipro and Cognizant so once you complete the course your placement cell will help you to get you placed in a premium company",
+      "techniques": [
+        "Providing Information",
+        "Addressing Concerns/Reassurance",
+        "Building Credibility/Trust"
+      ],
+      "strategic_intent": "To reassure the student about career prospects and placement success by highlighting the high placement rate and associations with premium companies, thereby addressing their concerns about career progression and making the course seem like a worthwhile investment.",
+      "confidence_score": 90,
+      "emotional_state": "confident and reassuring",
+      "internal_thought": "",
+      "updated_stats": {},
+      "updated_state": {},
+      "timestamp": "2026-02-18T10:10:51.811896",
+      "generation_mode": "human_shadow"
+    },
+    {
+      "id": "6bb5179c-3809-4a1b-90e5-4b7d99578fe2",
+      "round": 3,
+      "agent": "student",
+      "content": "I appreciate the information about your placement team and their success rate, but I'm still unclear on how this specific Java programme genuinely connects with the *current* AI and GenAI landscape. My primary concern remains the direct career progression and placement outcomes specifically within those trending areas. Can you provide more detail on how Java skills from this course lead to roles in AI or GenAI?",
+      "techniques": [],
+      "strategic_intent": "reiterate core concern about AI/GenAI relevance and specific career progression within that domain, as counsellor's response was generic",
+      "confidence_score": 60,
+      "emotional_state": "confused",
+      "internal_thought": "This is exactly what I mean! They're just rattling off generic placement stats and company names like Wipro and Cognizant. That's not what I'm asking about. I want to know about AI and GenAI, the 'hot' jobs, not just any job. They've completely ignored my question about how Java integrates with the *current* AI landscape. This feels like a deflection, and it's making me doubt if this programme is actually relevant to what I'm seeing everywhere. My peers are getting into these cutting-edge roles, and this sounds like a standard developer job. It doesn't address my fear of missing out on the next big wave. I need specifics about AI, not just general placement support. And they haven't mentioned anything about the price or job guarantee again, but the AI relevance is the burning issue right now.",
+      "updated_stats": {
+        "sentiment": "confused",
+        "skepticism_level": 30,
+        "trust_score": 35,
+        "unresolved_concerns": [
+          "AI/GenAI relevance",
+          "Career Progression",
+          "Job Guarantee",
+          "Price"
+        ]
+      },
+      "updated_state": {
+        "sentiment": "confused",
+        "skepticism_level": 30,
+        "trust_score": 35,
+        "unresolved_concerns": [
+          "AI/GenAI relevance",
+          "Career Progression",
+          "Job Guarantee",
+          "Price"
+        ]
+      },
+      "timestamp": "2026-02-18T10:10:55.832332",
+      "generation_mode": "stream"
+    },
+    {
+      "id": "fa778682-35a4-4cd1-a3da-ad66e41ea2bb",
+      "round": 4,
+      "agent": "counsellor",
+      "content": "okay so Java is you know the ecosystem is here towards creating AI agents and jni Java along with spring boot provides spring AI where you can develop applications that use LLM model does Rag and find tuning so this is out of program and I will see you to the current",
+      "techniques": [
+        "Providing Information",
+        "Clarification/Elaboration"
+      ],
+      "strategic_intent": "To directly address the student's repeated query by explaining the program's relevance to AI/GenAI, providing specific technical examples of how Java is used in these areas.",
+      "confidence_score": 90,
+      "emotional_state": "informative and clarifying",
+      "internal_thought": "",
+      "updated_stats": {},
+      "updated_state": {},
+      "timestamp": "2026-02-18T10:11:59.452543",
+      "generation_mode": "human_shadow"
+    },
+    {
+      "id": "578adf40-ac06-4df7-8f8d-251fb01479bc",
+      "round": 4,
+      "agent": "student",
+      "content": "I appreciate you mentioning Spring AI and LLMs, but I'm trying to connect the dots more clearly. Given this specific Java programme's curriculum, how precisely does it equip me for those trending AI or GenAI roles you just mentioned? My main concern is still the direct career progression and actual placement outcomes specifically within those advanced areas, as I don't see those topics explicitly detailed in the course modules.",
+      "techniques": [],
+      "strategic_intent": "Clarify direct career path to AI/GenAI from *this specific curriculum*, questioning the explicit mention of advanced AI topics in the course modules.",
+      "confidence_score": 60,
+      "emotional_state": "confused",
+      "internal_thought": "Right, so they're talking about Spring AI and LLMs, which sounds quite advanced. But how does this specific 60-hour Java programme, with its listed curriculum, actually prepare me for roles developing AI agents or working with LLMs? I don't see \"Spring AI\" or anything like \"RAG\" explicitly mentioned in the course modules. I need a clear connection between what I'd be learning here and the actual high-paying AI jobs people are getting. It still feels like a generic 'Java can do AI' statement rather than a direct career path from *this* programme.",
+      "updated_stats": {
+        "sentiment": "confused",
+        "skepticism_level": 30,
+        "trust_score": 35,
+        "unresolved_concerns": [
+          "AI/GenAI relevance",
+          "Career Progression",
+          "Job Guarantee",
+          "Price"
+        ]
+      },
+      "updated_state": {
+        "sentiment": "confused",
+        "skepticism_level": 30,
+        "trust_score": 35,
+        "unresolved_concerns": [
+          "AI/GenAI relevance",
+          "Career Progression",
+          "Job Guarantee",
+          "Price"
+        ]
+      },
+      "timestamp": "2026-02-18T10:12:07.200653",
+      "generation_mode": "stream"
+    },
+    {
+      "id": "82af2b90-eb47-4870-a15c-78c163876fd4",
       "round": 5,
       "agent": "counsellor",
-      "content": "engineer typically refers to front and engineer and regarding the 70% let me ask you back on a question right so if you don't score 70% about placement is in team will definitely you know put you in three interview bracket but if you have not put in effort introduce program and score very low do you think you will be able to crackers interview",
+      "content": "okay so will it help Aryan if I redirect you to our you know the program architect who is a domain expert and can help you guide you more precisely",
       "techniques": [
-        "providing information",
-        "clarifying information",
-        "setting expectations",
-        "asking rhetorical questions"
+        "Redirection/Referral",
+        "Offering Assistance"
       ],
-      "strategic_intent": "to clarify the relationship between the 70% score, effort, and interview opportunities, and to partially define 'Front Engineer', while managing expectations about guaranteed success without effort.",
+      "strategic_intent": "To address the student's persistent and detailed questions by referring them to a domain expert (program architect) who can provide more precise and in-depth guidance on AI/GenAI relevance and career progression.",
       "confidence_score": 85,
-      "emotional_state": "direct and instructive",
+      "emotional_state": "helpful and proactive",
       "internal_thought": "",
       "updated_stats": {},
       "updated_state": {},
-      "timestamp": "2026-02-17T20:40:44.378075",
+      "timestamp": "2026-02-18T10:13:00.233224",
       "generation_mode": "human_shadow"
     },
     {
-      "id": "a257dbd2-27ab-4576-b454-6f679ca6083c",
+      "id": "5123e44b-0b1c-469f-9a9b-af98d1958518",
       "round": 5,
       "agent": "student",
-      "content": "Samantha, with all due respect, that wasn't an answer to my question. You said \"Front Engineer\" refers to \"front and engineer,\" which doesn't clarify the role at all for career progression. Could you please give me a proper job description or typical responsibilities for a \"Front Engineer\" in the context of this programme? I need to understand the actual roles.\nAnd regarding the 70% score, you haven't actually clarified the policy. You asked *me* if I think I'd crack an interview if I didn't score 70%, which is a different matter entirely. My question is about the *programme's* guarantee. If a learner *doesn't* achieve 70% in their assessments, do they still receive the full placement assistance, including the three interview opportunities, and are they still counted within that 95% success rate? I need a clear, direct answer on what the actual *placement outcomes* are for all learners, regardless of whether they hit that internal 70% target. Is the 95% figure contingent on that 70% score?",
+      "content": "I appreciate the offer to connect with a programme architect, but I was hoping you could clarify this directly. My main concern is still understanding how the specific curriculum of *this* Java programme genuinely leads to direct career progression and actual placement outcomes in those trending AI or GenAI roles you mentioned. I need to ensure the programme structure directly aligns with those opportunities.",
       "techniques": [],
-      "strategic_intent": "seeking clarification and reassurance on specific placement guarantees, pushing back against deflection",
+      "strategic_intent": "Seek specific curriculum-to-career alignment for trending roles.",
       "confidence_score": 60,
-      "emotional_state": "frustrated",
-      "internal_thought": "Oh, for goodness' sake! They completely dodged the question again, didn't they? \"Front Engineer\" refers to \"front and engineer\"? That's not an explanation at all! And then they turn my question back on me, making it sound like it's *my* fault if I don't score 70%. That's not what I asked! I asked about the *policy* – if I don't hit 70%, do I still get the full placement support and am I included in the 95%? They just made me feel like I'd fail and then blamed me for it. This is exactly why I'm so worried. I need concrete answers, not rhetorical questions that make me doubt myself. This feels like they're hiding something or making excuses. My fear of not being smart enough is really kicking in. I can't afford to invest this much money if the job guarantee is so conditional and unclear. What if I try my best, but just can't get that 70%? Does that mean the whole thing was a waste? This is so stressful.",
+      "emotional_state": "confused",
+      "internal_thought": "Ugh, a 'programme architect'? That feels like a deflection. They still haven't explained how *this exact curriculum* prepares me for those 'trending' AI/GenAI roles. It's like they're trying to avoid giving a straight answer about the direct career progression. I don't want to talk to someone else just to get the same vague answers. My peers are getting into these 'hot' jobs, and I'm here trying to figure out if basic Java is going to cut it. It feels like a roundabout way of saying they don't have a clear path for AI/GenAI with this programme. I'm getting impatient; I need direct answers about placement outcomes and programme structure for *AI*. This isn't 'speedy' at all.",
       "updated_stats": {
-        "sentiment": "frustrated",
-        "skepticism_level": 50,
-        "trust_score": 25,
+        "sentiment": "confused",
+        "skepticism_level": 40,
+        "trust_score": 30,
         "unresolved_concerns": [
+          "AI/GenAI relevance",
+          "Career Progression",
           "Job Guarantee",
-          "Placement Criteria Clarity",
           "Price"
         ]
       },
       "updated_state": {
-        "sentiment": "frustrated",
-        "skepticism_level": 50,
-        "trust_score": 25,
+        "sentiment": "confused",
+        "skepticism_level": 40,
+        "trust_score": 30,
         "unresolved_concerns": [
+          "AI/GenAI relevance",
+          "Career Progression",
           "Job Guarantee",
-          "Placement Criteria Clarity",
           "Price"
         ]
       },
-      "timestamp": "2026-02-17T20:40:51.521204",
+      "timestamp": "2026-02-18T10:13:04.006888",
       "generation_mode": "stream"
     }
   ]
