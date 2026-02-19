@@ -1111,9 +1111,9 @@ async def _generate_coaching_tips(
         {
             "analysis": "मुख्य चिंता अभी भी अनसुलझी है।",
             "suggestions": [
-                "चिंता को मान्यता दें।",
-                "एक बाधा पूछें।",
-                "समापन प्रश्न पूछें।",
+                {"title": "चिंता को मान्यता दें", "description": "मैं आपकी चिंता समझता हूँ, यह एक वैध प्रश्न है।"},
+                {"title": "बाधा पूछें", "description": "क्या आपको समय या बजट को लेकर कोई विशेष परेशानी है?"},
+                {"title": "समापन प्रश्न पूछें", "description": "अगर हम इस मुद्दे को हल कर दें, तो क्या आप आज नामांकन के लिए तैयार हैं?"},
             ],
             "fact_check": "आपत्ति से जुड़ा एक ठोस कार्यक्रम तथ्य बताएं।",
         }
@@ -1121,9 +1121,9 @@ async def _generate_coaching_tips(
         else {
             "analysis": "Primary concern is still unresolved.",
             "suggestions": [
-                "Acknowledge concern first.",
-                "Probe one constraint.",
-                "Ask a closing question.",
+                {"title": "Acknowledge Concern", "description": "I hear your hesitation, and it is important we address this."},
+                {"title": "Probe Constraint", "description": "Is there a specific constraint stopping you right now?"},
+                {"title": "Closing Question", "description": "If we resolve this, would you be ready to proceed?"},
             ],
             "fact_check": "Use one concrete programme fact relevant to the objection.",
         }
@@ -1154,9 +1154,9 @@ LAST STUDENT MESSAGE:
 TASK:
 1. Decode subtext in one line.
 2. Provide exactly 3 suggestions for counsellor speech.
-   - Each suggestion must be < 6 words.
-   - Imperative verb only.
-   - No softeners like "you should".
+   - For each suggestion provide:
+     - title: < 4 words, imperative label (e.g. "Ask Budget").
+     - description: The actual suggested dialogue or detailed instruction (e.g. "Could you share your approximate budget range?").
 3. Provide one fact_check line tied to the objection.
 4. Language:
    - If prospect archetype is skeptical_shopper, return only Hindi (Devanagari).
@@ -1165,7 +1165,11 @@ TASK:
 OUTPUT JSON:
 {{
   "analysis": "<one-line subtext>",
-  "suggestions": ["<short move>", "<short move>", "<short move>"],
+  "suggestions": [
+    {{"title": "<short label>", "description": "<detailed text>"}},
+    {{"title": "<short label>", "description": "<detailed text>"}},
+    {{"title": "<short label>", "description": "<detailed text>"}}
+  ],
   "fact_check": "<single concrete fact>"
 }}
 """
@@ -1183,14 +1187,21 @@ OUTPUT JSON:
         model_name,
         prompt,
         "set_copilot_coaching_tips",
-        "Return concise coaching analysis, three imperative suggestions, and one fact check.",
+        "Return concise coaching analysis, three structured suggestions, and one fact check.",
         {
             "type": "object",
             "properties": {
                 "analysis": {"type": "string"},
                 "suggestions": {
                     "type": "array",
-                    "items": {"type": "string"},
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string"},
+                            "description": {"type": "string"},
+                        },
+                        "required": ["title", "description"],
+                    },
                     "minItems": 3,
                     "maxItems": 3,
                 },
@@ -1201,15 +1212,34 @@ OUTPUT JSON:
         fallback,
     )
     parsed = _to_plain_json(parsed)
-    suggestions = [str(item).strip() for item in (parsed.get("suggestions") or []) if str(item).strip()]
-    if not suggestions:
-        suggestions = list(fallback["suggestions"])
-    suggestions = suggestions[:3]
-    while len(suggestions) < 3:
-        suggestions.append(fallback["suggestions"][len(suggestions)])
+    
+    # Validation / Normalization
+    raw_suggestions = parsed.get("suggestions")
+    normalized_suggestions = []
+    if isinstance(raw_suggestions, list):
+        for item in raw_suggestions:
+            if isinstance(item, dict) and item.get("title") and item.get("description"):
+                normalized_suggestions.append({
+                    "title": str(item["title"]).strip(), 
+                    "description": str(item["description"]).strip()
+                })
+            elif isinstance(item, str):
+                # Legacy string fallback
+                normalized_suggestions.append({
+                    "title": "Suggestion",
+                    "description": str(item).strip()
+                })
+                
+    if not normalized_suggestions:
+        normalized_suggestions = list(fallback["suggestions"])
+        
+    normalized_suggestions = normalized_suggestions[:3]
+    while len(normalized_suggestions) < 3:
+        normalized_suggestions.append(fallback["suggestions"][len(normalized_suggestions)])
+        
     normalized = {
         "analysis": str(parsed.get("analysis") or fallback["analysis"]).strip(),
-        "suggestions": suggestions,
+        "suggestions": normalized_suggestions,
         "fact_check": str(parsed.get("fact_check") or fallback["fact_check"]).strip(),
     }
     _write_debug_trace(

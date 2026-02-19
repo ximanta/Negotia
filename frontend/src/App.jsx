@@ -201,14 +201,14 @@ function App() {
   const [bubbles, setBubbles] = useState([]);
   const bubbleTimerRef = useRef({});
 
-  const spawnBubble = (text, tone, left = 50, top = 50) => {
+  const spawnBubble = useCallback((text, tone, left = 50, top = 50) => {
     const id = `${Date.now()}-${Math.random()}`;
-    setBubbles(prev => [...prev, { id, text, tone, left, top }]);
+    setBubbles((prev) => [...prev, { id, text, tone, left, top }]);
     bubbleTimerRef.current[id] = setTimeout(() => {
-      setBubbles(prev => prev.filter(b => b.id !== id));
+      setBubbles((prev) => prev.filter((b) => b.id !== id));
       delete bubbleTimerRef.current[id];
     }, 2400);
-  };
+  }, []);
   const [micState, setMicState] = useState("inactive");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [micPermissionStatus, setMicPermissionStatus] = useState("prompt");
@@ -221,6 +221,7 @@ function App() {
   const [selectedArchetype, setSelectedArchetype] = useState("desperate_switcher");
   const [showControlModal, setShowControlModal] = useState(false);
   const [copilotData, setCopilotData] = useState(null);
+  const [copilotHistory, setCopilotHistory] = useState([]);
   const [copilotState, setCopilotState] = useState("idle");
   const [copilotPinnedSuggestion, setCopilotPinnedSuggestion] = useState("");
   const [isAutoSendEnabled, setIsAutoSendEnabled] = useState(true);
@@ -664,18 +665,23 @@ function App() {
   const activationSteps = selectedArchetype === "skeptical_shopper" ? HINDI_ACTIVATION_STEPS : ACTIVATION_STEPS;
 
   useEffect(() => {
+    // Prevent auto-minimizing copilot when listening
     if (!isAgentPoweredMode) {
-      setCopilotState("idle");
+      setCopilotState((prev) => (prev === "idle" ? prev : "idle"));
       setCopilotData(null);
       setCopilotPinnedSuggestion("");
-      return;
     }
-    if (micState === "listening" && copilotState === "ready") {
-      setCopilotState("minimized");
-    }
-  }, [copilotState, isAgentPoweredMode, micState]);
+  }, [isAgentPoweredMode]);
 
-  const handleApplyCopilotSuggestion = (suggestionText) => {
+  const handleCopilotExpand = useCallback(() => {
+    setCopilotState(copilotData ? "ready" : "thinking");
+  }, [copilotData]);
+
+  const handleCopilotMinimize = useCallback(() => {
+    setCopilotState("minimized");
+  }, []);
+
+  const handleApplyCopilotSuggestion = useCallback((suggestionText) => {
     const text = String(suggestionText || "").trim();
     if (!text) return;
     setCopilotPinnedSuggestion(text);
@@ -686,16 +692,16 @@ function App() {
     if (humanInputRef.current) {
       humanInputRef.current.focus();
     }
-  };
+  }, [liveModeNeedsTextFallback]);
 
-  const pulseChip = (key) => {
+  const pulseChip = useCallback((key) => {
     setChipFlash((current) => ({ ...current, [key]: true }));
     if (chipFlashTimerRef.current[key]) clearTimeout(chipFlashTimerRef.current[key]);
     chipFlashTimerRef.current[key] = setTimeout(() => {
       setChipFlash((current) => ({ ...current, [key]: false }));
       delete chipFlashTimerRef.current[key];
     }, 1000);
-  };
+  }, []);
 
   const renderMetricChips = () => (
     <>
@@ -745,14 +751,14 @@ function App() {
     return `${first} ${last}`;
   };
 
-  const pushUiToast = (text, tone = "negative", timeoutMs = 2800) => {
+  const pushUiToast = useCallback((text, tone = "negative", timeoutMs = 2800) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setUiToasts((current) => [...current, { id, text, tone }].slice(-4));
     uiToastTimerRef.current[id] = setTimeout(() => {
       setUiToasts((current) => current.filter((item) => item.id !== id));
       delete uiToastTimerRef.current[id];
     }, timeoutMs);
-  };
+  }, []);
 
   const resetRun = () => {
     if (wsRef.current) {
@@ -788,6 +794,7 @@ function App() {
     setProcessingLabelIndex(0);
     setWaveformLevel(0);
     setCopilotData(null);
+    setCopilotHistory([]);
     setCopilotState("idle");
     setCopilotPinnedSuggestion("");
     setIsAutoSendEnabled(true);
@@ -983,7 +990,7 @@ function App() {
         delete toastTimerRef.current[toast.id];
       }, 3200);
     });
-  }, [metrics, currentRound]);
+  }, [metrics, currentRound, spawnBubble, pulseChip]);
 
   useEffect(() => {
     if (stage === "completed") setShowRestartPulse(true);
@@ -1510,13 +1517,28 @@ function App() {
         }
       } else if (payload.type === "copilot_update") {
         const data = payload.data || {};
-        setCopilotData({
+        const newData = {
           analysis: String(data.analysis || "").trim(),
-          suggestions: Array.isArray(data.suggestions) ? data.suggestions.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 3) : [],
+          suggestions: Array.isArray(data.suggestions)
+            ? data.suggestions
+                .map((item) => {
+                  if (typeof item === "object" && item !== null) {
+                    return {
+                      title: String(item.title || "").trim(),
+                      description: String(item.description || "").trim(),
+                    };
+                  }
+                  return String(item || "").trim();
+                })
+                .filter((item) => (typeof item === "string" ? item : item.title))
+                .slice(0, 3)
+            : [],
           fact_check: String(data.fact_check || data.relevant_fact || "").trim(),
           round: Number(data.round || 0),
           updatedAt: Date.now(),
-        });
+        };
+        setCopilotData(newData);
+        setCopilotHistory((prev) => [newData, ...prev]);
         setCopilotState("ready");
         setCopilotPinnedSuggestion("");
       } else if (payload.type === "metrics_update") {
@@ -1755,11 +1777,12 @@ function App() {
           visible
           state={copilotState}
           data={copilotData}
+          history={copilotHistory}
           pinnedSuggestion={copilotPinnedSuggestion}
           isHindi={String(persona?.archetype_id || "").toLowerCase() === "skeptical_shopper"}
           onApplySuggestion={handleApplyCopilotSuggestion}
-          onExpand={() => setCopilotState(copilotData ? "ready" : "thinking")}
-          onMinimize={() => setCopilotState("minimized")}
+          onExpand={handleCopilotExpand}
+          onMinimize={handleCopilotMinimize}
         />,
         document.body
       )}
