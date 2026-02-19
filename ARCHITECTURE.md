@@ -2,8 +2,8 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         NIIT NEGOTIATION TRAINER                     │
-│                     Real-Time Multi-Agent Training System            │
+│                          CLOSEWIRE INFRASTRUCTURE                    │
+│                 Architecture for the Cognitive Enterprise           │
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -69,39 +69,43 @@
                                     │ HTTP REST API
                                     │
 ┌───────────────────────────────────▼─────────────────────────────────┐
-│                      ANTHROPIC CLAUDE API                            │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                       │
-│  • Model: claude-sonnet-4-20250514                                   │
-│  • Streaming: Real-time token generation                             │
-│  • Context: Full conversation history                                │
-│  • Temperature: Controlled for consistency                           │
-│                                                                       │
-└──────────────────────────────────────────────────────────────────────┘
+│                      GOOGLE GEMINI API                            │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  • Model: gemini-2.5-flash / gemini-2.0-flash                     │
+│  • Features: Real-time streaming, Function calling                │
+│  • Role: Core reasoning for all primary agents                    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────────┐
+│                      FLYWHEEL (Postgres + pgvector)               │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  • Harvester: Extracts winning triads (Objection/Response/Result) │
+│  • Vector Store: Stores "Knowledge Nuggets"                       │
+│  • Retrieval: Context-aware advice for "The Arena" (Copilot)      │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 
 
 ═══════════════════════════════════════════════════════════════════════
 
-                            DATA FLOW
+═══════════════════════════════════════════════════════════════════════
 
-1. USER CONFIGURES
-   └─▶ Frontend sends config via WebSocket
+                    THE THREE PIELINES DATA FLOW
 
-2. NEGOTIATION STARTS
-   └─▶ LangGraph initializes state
-       └─▶ Sales Agent analyzes, calls Claude API
-           └─▶ Message streamed to frontend
-               └─▶ Customer Agent responds, calls Claude API
-                   └─▶ Message streamed to frontend
-                       └─▶ Check if deal reached
-                           ├─▶ YES: Jump to Analysis
-                           └─▶ NO: Next round
+1. PIPELINE 1: THE LAB (AI vs. AI)
+   └─▶ Thousands of autonomous simulations overnight
+   └─▶ Discovers winning strategies & generates synthetic training data
 
-3. ANALYSIS PHASE
-   └─▶ Judge Agent gets full transcript
-       └─▶ Calls Claude API for comprehensive analysis
-           └─▶ Structured analysis sent to frontend
-               └─▶ User reviews learning points
+2. PIPELINE 2: THE GYM (Human vs. AI)
+   └─▶ Human trainee practices against adaptive AI personas
+   └─▶ Shadow Observer tracks metrics & provides metric-driven feedback
+
+3. PIPELINE 3: THE ARENA (Agent-Powered Human vs. AI)
+   └─▶ Real-time Co-pilot assist during live human-AI interactions
+   └─▶ Whispering Coach retrieves statistical "winners" from Flywheel
 
 ═══════════════════════════════════════════════════════════════════════
 

@@ -331,7 +331,7 @@ class NegotiationState(TypedDict):
 SESSION_STORE: Dict[str, Dict[str, Any]] = {}
 AUTH_TOKENS: Dict[str, float] = {}
 AUTH_FILE = Path(__file__).with_name("auth.json")
-TRACE_OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "outputs" / "tracebility" / "runtime"
+TRACE_OUTPUT_ROOT = Path(__file__).resolve().parent / "outputs" / "tracebility" / "runtime"
 TRACE_PIPELINE_DIRS: Dict[str, str] = {
     "ai_vs_ai": "ai_vs_ai",
     "human_vs_ai": "human_vs_ai",

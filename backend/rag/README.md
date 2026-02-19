@@ -1,99 +1,43 @@
-# RAG Ingestion Pipeline (Phase 1)
+# CloseWire Global Brain: The Harvester & Knowledge Nuggets
 
-This pipeline builds institutional memory from completed sessions.
-It runs **after** sessions complete and does **not** modify the live websocket loop.
+This pipeline builds **Institutional Memory** by harvesting "winning triads" from completed sessions. It is the engine behind the **Data Flywheel**, ensuring that every successful interaction makes the entire system smarter.
 
 ## What It Does
 
-1. Reads traceability JSON (`conversation_traceability.json` or `human_vs_ai_conversation_traceability.json`)
-2. Identifies winning triads:
+1. **The Harvester**: Analyzes session traces to identify high-impact moments.
    - `Student (objection)` -> `Counsellor (response)` -> `Student (reaction)`
-   - Keeps triads where `trust_delta >= 5` OR `skepticism_delta <= -5`
-3. Normalizes triads using Gemini (trigger/response/technique)
-4. Generates embeddings using Azure OpenAI via `litellm`
-5. Stores nuggets in Postgres (`pgvector`)
+   - Filters for triads with significant positive shifts in trust or sentiment.
+2. **Knowledge Nugget Extraction**: Normalizes these interactions using Gemini into discrete, reusable "Nuggets."
+3. **Vectorization**: Generates embeddings (via Azure OpenAI/litellm) for semantic retrieval.
+4. **Memory Storage**: Stores nuggets in Postgres (`pgvector`) for the **Arena/Copilot** pipeline.
 
 ## Files
 
-- `database.py`: SQLAlchemy async engine + `KnowledgeNugget` model
-- `migrations/001_create_knowledge_nuggets.sql`: extension + table DDL
-- `harvester.py`: triad detection + Gemini normalization
-- `ingest.py`: end-to-end ingestion runner
-- `verify_ingestion.py`: row count + technique/outcome inspection
-- `query_test.py`: vector similarity lookup test
+- `harvester.py`: The core logic for triad detection and normalization.
+- `database.py`: SQLAlchemy models for `KnowledgeNugget`.
+- `ingest.py`: End-to-end runner for the ingestion flywheel.
+- `verify_ingestion.py`: Inspector for harvested data quality.
+- `query_test.py`: Simulator for "Arena" retrieval.
 
 ## Environment
 
 Set these in `backend/.env`:
-
+- `RAG_PIPELINE_ENABLED=true`
+- `DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/closewire_db`
 - `GEMINI_API_KEY`
-- `GEMINI_MODEL`
-- `DATABASE_URL=postgresql+asyncpg://postgres:postgres_password@localhost:5455/closewire_db`
-- `AZURE_OPENAI_ENDPOINT`
-- `AZURE_OPENAI_API_KEY`
-- `AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-small`
-- `AZURE_OPENAI_API_VERSION=2024-02-01`
+- `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` (for vectorization)
 
-## Install
+## Operation
 
-Run from project root (WSL):
-
+### Ingesting New Sessions
 ```bash
-pip install -r backend/requirements.txt
+python -m backend.rag.ingest --file backend/outputs/tracebility/runtime/ai_vs_ai/conversation_traceability.json
 ```
 
-## Ingest
-
-Run migration + ingest:
-
-```bash
-python -m backend.rag.ingest --file outputs/tracebility/runtime/ai_vs_ai/conversation_traceability.json --migrate
-```
-
-Or ingest an existing human-mode trace:
-
-```bash
-python -m backend.rag.ingest --file outputs/tracebility/runtime/human_vs_ai/conversation_traceability.json
-```
-
-Expected output:
-
-```text
-Ingestion complete. knowledge_nuggets inserted: <N>
-```
-
-## Verify Rows
-
+### Verifying the Brain
 ```bash
 python -m backend.rag.verify_ingestion
 ```
 
-Expected:
-
-```text
-knowledge_nuggets count: <N>
-1. technique=<...> outcome_metrics={<...>}
-```
-
-## Vector Search Test
-
-```bash
-python -m backend.rag.query_test --text "The fees are too high." --top-k 3
-```
-
-Expected:
-
-```text
-Top 3 matches for: The fees are too high.
-1. distance=...
-   trigger: ...
-   response: ...
-```
-
-## Notes
-
-- Embeddings use **Azure OpenAI via `litellm`**.
-- LLM normalization uses **Gemini**.
-- This is Phase 1 ingestion only; runtime retrieval is Phase 2.
-- Runtime traces are written to `outputs/tracebility/runtime/<pipeline>/`.
-- Post-session RAG human-readable logs are written to `outputs/tracebility/rag/<pipeline>/`.
+## The Flywheel Result
+When the **Arena** pipeline is active, it queries this "Global Brain" in real-time. If a student presents an objection, the system retrieves a similar **Knowledge Nugget** and "whispers" the winning response to the counsellor.

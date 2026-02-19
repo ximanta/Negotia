@@ -10,7 +10,7 @@ try:
 except ImportError:
     from rag.ingest import ingest_trace_payload
 
-TRACE_OUTPUT_ROOT = Path(__file__).resolve().parents[2] / "outputs" / "tracebility" / "rag"
+TRACE_OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "outputs" / "tracebility" / "rag"
 
 
 def _pipeline_trace_dir(mode: str) -> Path:

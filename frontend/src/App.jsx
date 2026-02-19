@@ -1725,32 +1725,34 @@ function App() {
       <img className={`hero-bg ${!isTransparentStage ? "hero-bg-active" : ""}`} src={`${baseUrl}/negotiation.png`} alt="" aria-hidden="true" />
       <img className={`hero-bg ${isTransparentStage ? "hero-bg-active" : ""}`} src={`${baseUrl}/negotiation_transparent.png`} alt="" aria-hidden="true" />
       <div className="sceneOverlay" />
-
-      {stage === "idle" && (
-        <section className="hero launchHero">
-          <button type="button" className="brandWordmarkBtn" onClick={closeArena} title="Close Arena">
-            <h1 className="brandWordmark">
-              <span className="brandClose">CLOSE</span>
-              <span className="brandWire">WIRE</span>
-            </h1>
-          </button>
-          <p className="subtitle">Simulate | Compete | Reflect</p>
-          <div className="inputRow launchRow">
-            <input
-              type="url"
-              value={programUrl}
-              onChange={(e) => setProgramUrl(e.target.value)}
-              placeholder="Enter Program URL here..."
-            />
-<div class="btn-armed-wrap">
-  <button class="btn-armed" onClick={startNegotiation}>
-    <span class="btn-armed__icon"></span>
-    <span class="btn-armed__text">Launch Arena</span>
-    <span class="btn-armed__chevron">›</span>
-  </button>
-</div>     </div>
-        </section>
-      )}
+{stage === "idle" && (
+  <section className="hero launchHero">
+    <button type="button" className="brandWordmarkBtn" onClick={closeArena} title="Close Arena">
+      <h1 className="brandWordmark">
+        <span className="brandClose">CLOSE</span>
+        <span className="brandWire">WIRE</span>
+      </h1>
+    </button>
+    <p className="subtitle">Simulate | Compete | Reflect</p>
+    <div className="inputRow launchRow">
+      <div className="input-armed-wrap">
+        <input
+          type="url"
+          value={programUrl}
+          onChange={(e) => setProgramUrl(e.target.value)}
+          placeholder="https://..."
+        />
+      </div>
+      <div className="btn-armed-wrap">
+        <button className="btn-armed" onClick={startNegotiation}>
+          <span className="btn-armed__icon"></span>
+          <span className="btn-armed__text">Launch Arena</span>
+          <span className="btn-armed__chevron">›</span>
+        </button>
+      </div>
+    </div>
+  </section>
+)}
 
       {stage === "idle" && (
         <button
