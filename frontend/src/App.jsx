@@ -790,6 +790,8 @@ function App() {
     setCopilotData(null);
     setCopilotState("idle");
     setCopilotPinnedSuggestion("");
+    setIsAutoSendEnabled(true);
+    micPausedRef.current = false;
   };
 
   useEffect(
@@ -2078,7 +2080,7 @@ function App() {
                         sendHumanInput(liveModeNeedsTextFallback ? humanInputText : liveTranscriptRef.current);
                       }
                     }}
-                    placeholder={liveModeNeedsTextFallback
+                    placeholder={liveModeNeedsTextFallback || micState !== "listening"
                       ? "Type your response and press Enter..."
                       : "Listening... (Press Enter to force send)"}
                     disabled={micState === "locked"}
