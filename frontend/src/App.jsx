@@ -198,6 +198,17 @@ function App() {
   const [chipFlash, setChipFlash] = useState({});
   const [runDurationSeconds, setRunDurationSeconds] = useState(0);
   const [negotiationMode, setNegotiationMode] = useState("ai_vs_ai");
+  const [bubbles, setBubbles] = useState([]);
+  const bubbleTimerRef = useRef({});
+
+  const spawnBubble = (text, tone, left = 50, top = 50) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setBubbles(prev => [...prev, { id, text, tone, left, top }]);
+    bubbleTimerRef.current[id] = setTimeout(() => {
+      setBubbles(prev => prev.filter(b => b.id !== id));
+      delete bubbleTimerRef.current[id];
+    }, 2400);
+  };
   const [micState, setMicState] = useState("inactive");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [micPermissionStatus, setMicPermissionStatus] = useState("prompt");
@@ -903,12 +914,35 @@ function App() {
     if (trustDelta !== 0) pulseChip("trust");
     if ((metrics.sentiment_indicator || "neutral") !== (prev.sentiment_indicator || "neutral")) pulseChip("sentiment");
 
+    const isHuman = negotiationMode === "human_vs_ai";
     if (trustDelta !== 0) {
+      spawnBubble(
+        `Trust: ${metrics.trust_index ?? 0} (${trustDelta > 0 ? "+" : ""}${trustDelta})`,
+        trustDelta > 0 ? "positive" : "negative",
+        isHuman ? 70 : 65,
+        45
+      );
+    }
+    if (closeDelta !== 0) {
+      setTimeout(() => {
+         spawnBubble(
+           `Interest: ${metrics.close_probability ?? 0} (${closeDelta > 0 ? "+" : ""}${closeDelta})`,
+           closeDelta > 0 ? "positive" : "negative",
+           isHuman ? 30 : 35,
+           45
+         );
+      }, 150);
+    }
+
+    if (trustDelta !== 0) {
+      // suppressed to avoid duplicate bubble/toast.
+      /*
       nextToasts.push({
         id: `${Date.now()}-trust`,
         tone: trustDelta > 0 ? "positive" : "negative",
         text: `${trustDelta > 0 ? "+" : ""}${trustDelta} Trust`,
       });
+      */
     }
     if (resistanceDelta !== 0) {
       nextToasts.push({
@@ -918,11 +952,14 @@ function App() {
       });
     }
     if (Math.abs(closeDelta) >= 4) {
+      // suppressed
+      /*
       nextToasts.push({
         id: `${Date.now()}-close`,
         tone: "strategic",
         text: `${closeDelta > 0 ? "+" : ""}${closeDelta} Close Prob`,
       });
+      */
     }
 
     if (!nextToasts.length) return;
@@ -1012,6 +1049,16 @@ function App() {
     clearMicTimers();
     setMicState("processing");
     startProcessingTicker();
+    
+    // Optimistic UI update to prevent gap
+    setDrafts(prev => ({
+      ...prev,
+      "optimistic-human": { id: "optimistic-human", agent: "counsellor", text }
+    }));
+    setHumanInputText("");
+    setLiveTranscript("");
+    liveTranscriptRef.current = "";
+
     socket.send(JSON.stringify({ type: "human_input", text }));
     clearProcessingFailSafe();
     processingFailSafeTimerRef.current = setTimeout(() => {
@@ -1183,8 +1230,12 @@ function App() {
     recognition.onstart = () => {
       setMicPermissionStatus("granted");
       setMicState("listening");
+      micStateRef.current = "listening";
       armSilencePromptTimer();
-      committedTranscriptRef.current = String(liveTranscriptRef.current || "").trim();
+      armAutoSendTimer(); // Ensure auto-send triggers if text exists (e.g. edited while paused)
+      // Ensure we append to existing text (user request)
+      const existingText = String(liveTranscriptRef.current || humanInputText || "").trim();
+      committedTranscriptRef.current = existingText;
     };
     recognition.onresult = (event) => {
       let interim = "";
@@ -1440,6 +1491,12 @@ function App() {
         }
         if (isHumanDrivenPipeline(mode) && normalized.agent === "counsellor") {
           clearProcessingFailSafe();
+          // Clear optimistic draft
+          setDrafts(prev => {
+             const next = { ...prev };
+             delete next["optimistic-human"];
+             return next;
+          });
         }
         if (isHumanDrivenPipeline(mode) && normalized.agent === "student") {
           clearProcessingFailSafe();
@@ -1877,7 +1934,7 @@ function App() {
             </div>
           )}
           {stage === "completed" && !showReportDashboard && (
-            <div className="arenaBottomActions">
+            <div className={`arenaBottomActions ${stage === "completed" ? "raised" : ""}`}>
               <button className="ghostBtn viewReportBtn" onClick={() => setShowReportDashboard(true)}>
                 View Report
               </button>
@@ -1925,7 +1982,9 @@ function App() {
                 <article className="studentMiniCard">
                   <strong>Prospective Student</strong>
                   <p>{`${persona?.name || "Student"}, ${formatArchetype(persona)}`}</p>
-                  <span>{micState === "locked" ? "Speaking..." : "Waiting..."}</span>
+                  {stage !== "completed" && (
+                    <span>{micState === "locked" ? "Speaking..." : "Waiting..."}</span>
+                  )}
                 </article>
               </div>
             )}
@@ -2009,6 +2068,8 @@ function App() {
                       setHumanInputText(event.target.value);
                       setLiveTranscript(event.target.value);
                       liveTranscriptRef.current = event.target.value;
+                      // Debounce auto-send on typing if mic is active
+                      armAutoSendTimer();
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
@@ -2029,7 +2090,7 @@ function App() {
 
             <div className={`projectionLane ${isHumanMode ? "human-mode-projection" : ""}`} ref={projectionRef}>
             {allCards.map((msg, idx) => (
-              <article key={`${msg.id || idx}`} className={`projectionCard ${msg.agent} ${msg.draft ? "draft" : ""}`}>
+              <article key={`${msg.id || idx}`} className={`projectionCard ${msg.agent}`}>
                 <header>
                   <div className="speakerMeta">
                     <strong>{msg.agent === "counsellor" ? "Program Counseller" : "Prospective Student"}</strong>
@@ -2039,7 +2100,7 @@ function App() {
                         : `${persona?.name || "Student"}, ${formatArchetype(persona)}`}
                     </span>
                   </div>
-                  <span>{msg.round ? `Round ${msg.round}` : "Streaming"}</span>
+                  <span>{`Round ${msg.round || currentRound}`}</span>
                 </header>
                 <p>{msg.content}</p>
                 {msg.agent === "student" && msg.internal_thought && (
@@ -2048,13 +2109,13 @@ function App() {
                     <div>{msg.internal_thought}</div>
                   </details>
                 )}
-                {msg.strategic_intent && (
+                {(msg.strategic_intent && (!isHumanMode || msg.agent !== "counsellor")) && (
                   <details>
                     <summary>Strategic Intent</summary>
                     <div>{msg.strategic_intent}</div>
                   </details>
                 )}
-                {msg.techniques?.length > 0 && (
+                {(msg.techniques?.length > 0 && (!isHumanMode || msg.agent !== "counsellor")) && (
                   <div className="tags">
                     {msg.techniques.map((t) => (
                       <span key={t}>{t}</span>
@@ -2066,6 +2127,13 @@ function App() {
           </div>
 
           </div>
+          <div className="floatingBubbleLayer">
+            {bubbles.map((b) => (
+              <div key={b.id} className={`floatingBubble ${b.tone}`} style={{ left: `${b.left}%`, top: `${b.top}%` }}>
+                {b.text}
+              </div>
+            ))}
+          </div>
           <div className="popupLayer">
             {metricToasts.map((toast) => (
               <div key={toast.id} className={`metricToast ${toast.tone}`}>
@@ -2073,7 +2141,7 @@ function App() {
               </div>
             ))}
           </div>
-          {stage === "negotiating" && (
+          {(stage === "negotiating" || stage === "completed") && (
             <div className={`metricsRibbon bottomRibbon ${(metrics?.close_probability ?? 0) > 80 ? "glow" : ""}`}>
               {renderMetricChips()}
             </div>
@@ -2259,6 +2327,9 @@ function App() {
                   </div>
                 )}
               </article>
+            </div>
+            <div className={`metricsRibbon ${(metrics?.close_probability ?? 0) > 80 ? "glow" : ""}`} style={{ position: "relative", top: "auto", bottom: "auto", margin: "0 auto 4px", zIndex: 35 }}>
+              {renderMetricChips()}
             </div>
             <div className="resultActions stickyActions">
               <button className="downloadBtn" onClick={() => downloadReport()}>
